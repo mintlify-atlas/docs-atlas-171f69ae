@@ -1,0 +1,156 @@
+---
+title: Fedora Installation
+description: Install Better Blur DX on Fedora using the COPR repository
+---
+
+Better Blur DX is available on Fedora through a COPR repository maintained by [Infinality](https://github.com/Infinality).
+
+## Installation
+
+<Steps>
+  <Step title="Enable the COPR Repository">
+    Enable the Better Blur DX COPR repository:
+    
+    ```bash
+    dnf copr enable infinality/kwin-effects-better-blur-dx
+    ```
+    
+    This adds the repository to your DNF configuration.
+  </Step>
+  
+  <Step title="Install the Package">
+    Choose the package for your display server:
+    
+    <Tabs>
+      <Tab title="Wayland (Recommended)">
+        ```bash
+        dnf install kwin-effects-better-blur-dx
+        ```
+      </Tab>
+      
+      <Tab title="X11">
+        ```bash
+        dnf install kwin-effects-better-blur-dx-x11
+        ```
+        
+        <Warning>
+          X11 support is deprecated and not actively tested. Wayland is recommended.
+        </Warning>
+      </Tab>
+    </Tabs>
+  </Step>
+  
+  <Step title="Enable the Effect">
+    After installation:
+    
+    1. Open **System Settings** > **Desktop Effects**
+    2. Disable any existing blur effects
+    3. Enable **Better Blur DX**
+  </Step>
+</Steps>
+
+## COPR Repository Details
+
+For more information about the COPR repository, including build status and available versions:
+
+[infinality/kwin-effects-better-blur-dx on COPR](https://copr.fedorainfracloud.org/coprs/infinality/kwin-effects-better-blur-dx/)
+
+## System Upgrades
+
+<Warning>
+  **Important**: After upgrading Plasma or KWin, you must update the package.
+  
+  The effect is compiled against a specific KWin version. After system upgrades:
+  
+  ```bash
+  dnf upgrade kwin-effects-better-blur-dx
+  ```
+  
+  Then restart KWin by logging out and back in.
+</Warning>
+
+## Fedora Kinoite (Immutable)
+
+<Note>
+  On Fedora Kinoite and other immutable distributions based on it, the installation process is different. See the [Manual Build](/installation/manual-build#fedora-kinoite) guide for instructions on building in a container.
+</Note>
+
+## Updating
+
+To update to the latest version:
+
+```bash
+# Update all packages including Better Blur DX
+dnf upgrade
+
+# Or update only Better Blur DX
+dnf upgrade kwin-effects-better-blur-dx
+```
+
+After updating, restart KWin:
+
+<CodeGroup>
+```bash Wayland
+# Log out and log back in, or:
+systemctl --user restart plasma-kwin_wayland.service
+```
+
+```bash X11
+kwin_x11 --replace &
+```
+</CodeGroup>
+
+## Uninstalling
+
+To remove Better Blur DX:
+
+```bash
+dnf remove kwin-effects-better-blur-dx
+
+# Or for X11:
+dnf remove kwin-effects-better-blur-dx-x11
+```
+
+To also disable the COPR repository:
+
+```bash
+dnf copr disable infinality/kwin-effects-better-blur-dx
+```
+
+## Troubleshooting
+
+If you encounter issues:
+
+1. **Effect not appearing**: Verify the package is installed:
+   ```bash
+   rpm -qi kwin-effects-better-blur-dx
+   ```
+
+2. **Repository errors**: Refresh the COPR repository:
+   ```bash
+   dnf clean all
+   dnf makecache
+   ```
+
+3. **Version conflicts**: Ensure you're on a supported Fedora version (41, 42):
+   ```bash
+   cat /etc/fedora-release
+   ```
+
+4. **Check logs**: View KWin logs for errors:
+   ```bash
+   journalctl --user -u plasma-kwin_wayland.service -f
+   ```
+
+## Supported Fedora Versions
+
+The COPR repository provides packages for:
+
+- Fedora 41
+- Fedora 42
+
+Older versions may not have pre-built packages available.
+
+## Next Steps
+
+Learn how to configure Better Blur DX in the [Configuration](/usage/configuration) section.

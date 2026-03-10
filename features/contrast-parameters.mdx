@@ -1,0 +1,174 @@
+---
+title: Contrast Parameters
+description: Adjust brightness, saturation, and contrast of blurred backgrounds
+---
+
+Better Blur DX includes a contrast pass that processes the blurred background before it's composited with the window. This allows you to fine-tune the appearance of the blur effect to match your theme and preferences.
+
+## Contrast Pass Overview
+
+The contrast pass applies three adjustments to the blurred background:
+
+1. **Brightness** - How light or dark the blur appears
+2. **Saturation** - How vibrant or muted the colors are
+3. **Contrast** - The difference between light and dark areas
+
+These parameters work together to create the final appearance of the blur effect beneath your windows.
+
+## Brightness
+
+Controls how bright the blurred background appears.
+
+- **Range:** 0% to 500%
+- **Default:** 100% (no change)
+- **Step size:** 25%
+
+### Effect
+
+- **Below 100%** - Darkens the blur, creating a more subdued background
+- **100%** - Original brightness (no adjustment)
+- **Above 100%** - Brightens the blur, making the background more prominent
+
+### Usage Tips
+
+- Use lower brightness (50-75%) with light themes to reduce glare
+- Use higher brightness (125-150%) with dark themes to maintain visibility
+- Set to 0% for a completely black blur background
+
+## Saturation
+
+Controls the color intensity of the blurred background.
+
+- **Range:** 0% to 500%
+- **Default:** 150% (enhanced saturation)
+- **Step size:** 25%
+
+### Effect
+
+- **0%** - Complete desaturation (grayscale blur)
+- **100%** - Original color saturation
+- **Above 100%** - Enhanced color vibrancy
+
+The default value of 150% is deliberately higher than neutral because it helps blurred backgrounds appear more lively and distinct from the window content.
+
+### Usage Tips
+
+- Use 0-50% for a subtle, professional appearance
+- Use 100-150% (default range) for balanced, pleasant blur
+- Use 200%+ for vibrant, eye-catching effects
+
+## Contrast
+
+Controls the difference between light and dark areas in the blurred background.
+
+- **Range:** 0% to 500%
+- **Default:** 100% (no change)
+- **Step size:** 25%
+
+### Effect
+
+- **Below 100%** - Reduces contrast, creating a softer, more uniform appearance
+- **100%** - Original contrast (no adjustment)
+- **Above 100%** - Increases contrast, making edges and gradients more pronounced
+
+### Usage Tips
+
+- Lower contrast (50-90%) can help reduce visual noise in busy backgrounds
+- Higher contrast (110-150%) can make the blur effect more dramatic
+- Extreme values (0% or 300%+) create artistic effects
+
+## Force Contrast Parameters
+
+By default, Better Blur DX respects contrast parameters that are provided by the windows themselves. Many Plasma components specify their own brightness, saturation, and contrast values.
+
+### Default Behavior (Force OFF)
+
+When **Force Contrast Parameters** is disabled:
+
+- Windows that provide their own values use those values
+- Windows without custom values use your configured settings
+- Plasma surfaces maintain their theme-consistent appearance
+
+### When to Force
+
+Enable **Force Contrast Parameters** if:
+
+- Plasma panels or widgets look incorrect with their default values
+- You want consistent blur appearance across all windows
+- Window-provided values conflict with your theme
+
+<Warning>
+  Forcing contrast parameters overrides values from **all** windows, including Plasma system surfaces. This may cause the panel, widgets, and other system UI to look different than intended by the theme designer.
+</Warning>
+
+## Why Plasma Surfaces Have Custom Values
+
+Plasma components (panels, widgets, system tray, KRunner, etc.) are designed with specific blur parameters that complement the Plasma theme. These values are defined in the theme configuration files.
+
+### Example: Breeze Plasma Theme
+
+The [Breeze Plasma theme](https://invent.kde.org/plasma/libplasma/-/blob/v6.5.3/src/desktoptheme/breeze/plasmarc) defines custom contrast parameters optimized for its visual design:
+
+- Panel backgrounds are tuned for readability
+- Popup backgrounds are adjusted for proper contrast with text
+- Widget backgrounds maintain theme consistency
+
+Better Blur DX respects these values by default to ensure your Plasma desktop looks as the designers intended.
+
+### Identifying Windows with Custom Values
+
+Windows with custom contrast values typically include:
+
+- **Plasma panels** (top/bottom bars)
+- **Plasma widgets** (desktop widgets and panel applets)
+- **KRunner** (application launcher)
+- **System tray popups** (network, sound, notifications)
+- **Plasma system dialogs** (logout, session dialogs)
+
+<Info>
+  If you notice certain windows look different when you adjust your contrast settings, they're likely providing their own values. Enable "Force Contrast Parameters" to override them.
+</Info>
+
+## Combining Parameters for Different Effects
+
+### Subtle Professional Blur
+```
+Brightness: 75%
+Saturation: 100%
+Contrast: 90%
+```
+Creates a muted, understated blur effect suitable for professional environments.
+
+### Vibrant Modern Blur
+```
+Brightness: 100%
+Saturation: 175%
+Contrast: 110%
+```
+Produces a colorful, energetic blur effect with enhanced colors.
+
+### Dark Theme Blur
+```
+Brightness: 50%
+Saturation: 125%
+Contrast: 100%
+```
+Darkens the blur significantly while maintaining color depth.
+
+### Soft Dreamy Blur
+```
+Brightness: 110%
+Saturation: 150%
+Contrast: 70%
+```
+Creates a soft, low-contrast effect with pleasant colors.
+
+## Configuration Location
+
+Contrast parameters are configured in **System Settings → Workspace Behavior → Desktop Effects → Better Blur DX → General tab**.
+
+Each parameter can be adjusted using:
+- A slider for quick adjustments
+- A spin box for precise numeric input
+
+Changes are applied immediately to all affected windows.

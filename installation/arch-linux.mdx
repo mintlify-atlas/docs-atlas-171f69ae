@@ -1,0 +1,161 @@
+---
+title: Arch Linux Installation
+description: Install Better Blur DX on Arch Linux using AUR packages
+---
+
+Better Blur DX is available on the Arch User Repository (AUR) with packages maintained by [D3SOX](https://github.com/D3SOX).
+
+## Available Packages
+
+There are separate packages for Wayland and X11, each with stable release and git versions:
+
+- **Stable releases**: Built from tagged versions
+- **Git packages**: Track the `main` branch with the latest development changes
+
+## Installation
+
+<Tabs>
+  <Tab title="Wayland (Recommended)">
+    <Steps>
+      <Step title="Install Stable Release">
+        Install the stable version for Wayland:
+        
+        <CodeGroup>
+        ```bash yay
+        yay -S kwin-effects-better-blur-dx
+        ```
+        
+        ```bash paru
+        paru -S kwin-effects-better-blur-dx
+        ```
+        
+        ```bash makepkg
+        git clone https://aur.archlinux.org/kwin-effects-better-blur-dx.git
+        cd kwin-effects-better-blur-dx
+        makepkg -si
+        ```
+        </CodeGroup>
+      </Step>
+      
+      <Step title="Or Install Git Version">
+        Alternatively, install the development version that tracks the `main` branch:
+        
+        <CodeGroup>
+        ```bash yay
+        yay -S kwin-effects-better-blur-dx-git
+        ```
+        
+        ```bash paru
+        paru -S kwin-effects-better-blur-dx-git
+        ```
+        
+        ```bash makepkg
+        git clone https://aur.archlinux.org/kwin-effects-better-blur-dx-git.git
+        cd kwin-effects-better-blur-dx-git
+        makepkg -si
+        ```
+        </CodeGroup>
+        
+        <Note>
+          The `-git` package provides the latest features but may be less stable than tagged releases.
+        </Note>
+      </Step>
+    </Steps>
+  </Tab>
+  
+  <Tab title="X11">
+    <Steps>
+      <Step title="Install Stable Release">
+        Install the stable version for X11:
+        
+        <CodeGroup>
+        ```bash yay
+        yay -S kwin-effects-better-blur-dx-x11
+        ```
+        
+        ```bash paru
+        paru -S kwin-effects-better-blur-dx-x11
+        ```
+        
+        ```bash makepkg
+        git clone https://aur.archlinux.org/kwin-effects-better-blur-dx-x11.git
+        cd kwin-effects-better-blur-dx-x11
+        makepkg -si
+        ```
+        </CodeGroup>
+      </Step>
+      
+      <Step title="Or Install Git Version">
+        Alternatively, install the development version:
+        
+        <CodeGroup>
+        ```bash yay
+        yay -S kwin-effects-better-blur-dx-x11-git
+        ```
+        
+        ```bash paru
+        paru -S kwin-effects-better-blur-dx-x11-git
+        ```
+        
+        ```bash makepkg
+        git clone https://aur.archlinux.org/kwin-effects-better-blur-dx-x11-git.git
+        cd kwin-effects-better-blur-dx-x11-git
+        makepkg -si
+        ```
+        </CodeGroup>
+      </Step>
+    </Steps>
+    
+    <Warning>
+      X11 support is deprecated and not actively tested. Wayland is recommended for the best experience.
+    </Warning>
+  </Tab>
+</Tabs>
+
+## After Installation
+
+<Steps>
+  <Step title="Enable the Effect">
+    Open **System Settings** > **Desktop Effects**, disable any existing blur effects, and enable **Better Blur DX**.
+  </Step>
+  
+  <Step title="Restart KWin (if updating)">
+    If you're updating an existing installation, restart KWin to load the new version:
+    
+    ```bash
+    # Log out and log back in, or:
+    kwin_wayland --replace &
+    # For X11:
+    kwin_x11 --replace &
+    ```
+    
+    <Note>
+      This is only required for updates. Fresh installations don't need a KWin restart.
+    </Note>
+  </Step>
+</Steps>
+
+## System Upgrades
+
+<Warning>
+  **Important**: After upgrading Plasma or KWin, you must reinstall the package.
+  
+  The effect is compiled against a specific KWin version and will stop working if KWin is updated. Simply reinstall the package after system upgrades:
+  
+  ```bash
+  yay -S kwin-effects-better-blur-dx
+  ```
+</Warning>
+
+## Troubleshooting
+
+If the effect doesn't appear after installation:
+
+1. Verify the package is installed: `pacman -Qi kwin-effects-better-blur-dx`
+2. Ensure the default blur effect is disabled in System Settings
+3. Check KWin logs: `journalctl --user -u plasma-kwin_wayland.service -f`
+4. Try restarting KWin or logging out and back in
+
+## Next Steps
+
+Learn how to configure Better Blur DX in the [Configuration](/usage/configuration) section.

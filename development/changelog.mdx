@@ -1,0 +1,89 @@
+---
+title: Changelog
+description: Version history and release notes for Better Blur DX
+---
+
+This page contains the full changelog for Better Blur DX. Each version includes new features, bug fixes, and important changes.
+
+## Development Version
+
+Things not in any tagged release yet.
+
+## Released Versions
+
+<Accordion title="Version 2.2.0">
+  ### Features
+  
+  - **Port to Plasma 6.6 blur** - Updated to support the latest Plasma 6.6 blur implementation
+  - **Support Plasma 6.6** - Full compatibility with Plasma 6.6
+  - **Re-implement refraction** - Added refraction as an alternative to the default contrast pass
+  
+  ### Bug Fixes
+  
+  - Fixed falsely overwriting blur regions with empty force-blur regions resulting in decorations losing their blur (e.g., window decorations would incorrectly lose blur effects)
+</Accordion>
+
+<Accordion title="Version 2.1.0">
+  ### Features
+  
+  - **Match window classes with regular expressions** - More flexible window matching using regex patterns
+  - **Improved "blur while transformed" behaviour** - Much better compatibility with Wobbly Windows effect
+    - Before: Blur behavior with Wobbly Windows was somewhat "undefined" (blur randomly disappearing, flickering, blur region "leaking" behind the window)
+    - Now: Explicitly disable blur on window move/resize, let it transform, then explicitly reapply blur
+    - The transition includes a smooth fade effect when transitioning between blurred ↔ non-blurred states
+  
+  ### Bug Fixes
+  
+  - **Fix X11 client blur on Wayland** - Fixed not respecting requested blur by X11 clients on the Wayland build. The X11 property parsing logic was accidentally made exclusive to the X11 build
+  - **Fix corner radius with Breeze decoration settings** - Fixed corner radius when both "Round bottom corners of windows with no borders" (Breeze decoration settings) and "Blur decorations as well" are enabled
+  
+  ### Internal Changes
+  
+  - Introduced `WindowManager` and `Window` classes to track all relevant window info, perform matching, etc.
+</Accordion>
+
+<Accordion title="Version 2.0.0">
+  The first release of Better Blur DX! 🎉
+  
+  <Warning>
+    If coming from the original Better Blur: This release contains **breaking changes**.
+  </Warning>
+  
+  ### Features
+  
+  - **Port to the Plasma 6.5 blur** - Complete rewrite based on the new Plasma 6.5 blur implementation
+  - **Contrast pass slider controls** - Contrast pass parameters can now be configured via sliders or spinboxes
+  - **Force contrast pass parameters** - Allow forcing contrast pass parameters (e.g., the Plasma panel provides its own values which are respected by default, but users can now override those values if the window-provided values look "off")
+  - **Auto-detect opacity blur behavior** - Automatically detect if a window's blur should be affected by its opacity based on heuristics (previously a manual option)
+  
+  ### Breaking Changes
+  
+  - **Changed config group name** - If coming from the original Better Blur, you'll need to reconfigure your settings
+  - **Removed refraction** - This feature needs a major rewrite to work with the new contrast pass of the Plasma 6.5 blur. It was removed to ease maintenance but may return in the future if there's significant interest
+  - **Removed static blur** - This feature used several hacks and duplicated the entire effect pipeline. It was removed as the maintenance effort outweighed the benefit
+  
+  ### Bug Fixes
+  
+  - Fixed blurring of windows with opacity < 1.0 (from KWin rules)
+  - Fixed artifacts around screen edges in the new contrast pass
+  
+  ### Miscellaneous
+  
+  - Renamed project from "Better Blur" to "Better Blur DX"
+</Accordion>
+
+<Accordion title="Version 1.5.0 and Earlier">
+  Older versions are from the original [Better Blur](https://github.com/taj-ny/kwin-effects-forceblur/) project. Better Blur DX continued the version numbering from that project.
+  
+  For the history of versions 1.5.0 and earlier, please refer to the [original Better Blur repository](https://github.com/taj-ny/kwin-effects-forceblur/).
+</Accordion>
+
+## Version Support
+
+Better Blur DX should always work on the current stable version of Plasma. Older versions aren't tested extensively and may or may not work.
+
+**Currently supported versions:** Plasma 6.5 and 6.6
+
+<Note>
+  The effect only works for the exact KWin version it was built for. If the effect stops working after a system upgrade, you'll need to rebuild it or reinstall the package.
+</Note>

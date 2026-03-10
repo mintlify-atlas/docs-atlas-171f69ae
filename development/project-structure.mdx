@@ -1,0 +1,517 @@
+---
+title: Project Structure
+description: Detailed breakdown of the Better Blur DX source code organization
+---
+
+This page provides a detailed breakdown of the Better Blur DX source code structure, helping developers understand where to find specific functionality.
+
+## Repository Structure
+
+```
+kwin-effects-better-blur-dx/
+├── src/                    # Main source code
+│   ├── kcm/               # KConfig Module (settings UI)
+│   └── shaders/           # OpenGL shader files
+├── nix/                   # NixOS packaging
+├── tools/                 # Build and development tools
+├── docs/                  # Documentation
+├── .github/               # GitHub workflows and CI
+├── CMakeLists.txt         # Root build configuration
+└── README.md              # Project readme
+```
+
+## Source Files (`src/`)
+
+The `src/` directory contains all the C++ source code for the effect.
+
+### Core Effect Files
+
+#### blur.h, blur.cpp
+
+**Purpose:** Main blur effect implementation
+
+**Key classes:**
+- `BlurEffect`: Main effect class inheriting from `KWin::Effect`
+- `BlurRenderData`: Temporary render targets for the Dual Kawase algorithm
+- `BlurEffectData`: Per-window blur data including regions and color matrices
+
+**Responsibilities:**
+- Screen pre-paint operations
+- Window pre-paint and paint operations
+- Dual Kawase blur algorithm implementation
+- Downsample and upsample rendering passes
+- Blur region management
+- Noise texture generation
+- Color matrix transformations (brightness, contrast, saturation)
+- Integration with KWin's effect system
+
+**Location:** `src/blur.h:75` (BlurEffect class)  
+**Lines:** ~240 (header), ~1500+ (implementation)
+
+#### main.cpp
+
+**Purpose:** Effect plugin entry point
+
+**Responsibilities:**
+- Plugin factory setup
+- Effect registration with KWin
+- Plugin metadata
+
+**Lines:** ~20
+
+### Window Management
+
+#### window_manager.hpp, window_manager.cpp
+
+**Purpose:** Manages all windows that receive blur effects
+
+**Key class:** `BBDX::WindowManager`
+
+**Responsibilities:**
+- Window lifecycle (add/remove)
+- Window class matching (whitelist/blacklist with regex)
+- Maximized state detection
+- Dock window tracking
+- Border radius management
+- Transform state tracking (for animations)
+- Blur region updates
+
+**Configuration:**
+- Window class filters (fixed strings and regex patterns)
+- Decoration, dock, and menu blur toggles
+- User-configured border radius
+
+**Location:** `src/window_manager.hpp:32` (WindowManager class)  
+**Lines:** ~150 (header), ~280 (implementation)
+
+#### window.hpp, window.cpp
+
+**Purpose:** Represents an individual managed window
+
+**Key class:** `BBDX::Window`
+
+**Responsibilities:**
+- Window-specific blur region calculation
+- Maximized state tracking
+- Transform state tracking
+- Effective border radius calculation
+- Blur opacity management
+
+**Lines:** ~170 (header), ~730 (implementation)
+
+### Rendering Passes
+
+#### refraction_pass.hpp, refraction_pass.cpp
+
+**Purpose:** Implements refraction effects at window edges
+
+**Key class:** `BBDX::RefractionPass`
+
+**Features:**
+- Rectangular and rounded corner variants
+- Configurable edge size and corner radius
+- RGB fringing simulation
+- Normal power adjustment
+- Multiple texture repeat modes
+- Adjustable refraction strength
+
+**Shader uniforms:**
+- MVP matrix and color matrix
+- Offset and halfpixel parameters  
+- Refraction rectangle size
+- Edge size and corner radius
+- Refraction strength and normal power
+- RGB fringing amount
+- Texture repeat mode
+- Refraction mode
+
+**Location:** `src/refraction_pass.hpp:14` (RefractionPass class)  
+**Lines:** ~126 (header), ~350 (implementation)
+
+#### rounded_corners_pass.hpp, rounded_corners_pass.cpp
+
+**Purpose:** Applies rounded corners to blurred windows
+
+**Key class:** `BBDX::RoundedCornersPass`
+
+**Features:**
+- Shader-based corner rounding
+- Per-corner radius support
+- Integration with blur render pipeline
+- Vertex buffer optimization
+
+**Process:**
+1. Uses first framebuffer with raw un-blurred pixels
+2. Applies rounded corner mask based on corner radius
+3. Renders with proper viewport transformations
+
+**Location:** `src/rounded_corners_pass.hpp:23` (RoundedCornersPass class)  
+**Lines:** ~57 (header), ~110 (implementation)
+
+### Configuration
+
+#### settings.h, settings.cpp
+
+**Purpose:** Configuration management wrapper
+
+**Key class:** `BlurSettings`
+
+**Responsibilities:**
+- Loading configuration from KConfig
+- Providing access to blur parameters
+- Configuration change notifications
+
+**Lines:** ~20 (header), ~25 (implementation)
+
+#### blur.kcfg
+
+**Purpose:** KConfig XML definition file
+
+**Contains:** All configurable options including:
+- Blur strength and iteration count
+- Brightness, contrast, saturation adjustments
+- Corner radius settings
+- Refraction parameters
+- Window class filters
+- Noise texture settings
+- Decoration/dock/menu blur toggles
+
+**Format:** KConfig XML schema  
+**Lines:** ~80
+
+#### blurconfig.kcfgc
+
+**Purpose:** KConfigCompiler configuration
+
+**Generates:** C++ classes from blur.kcfg  
+**Lines:** ~3
+
+### Utility Files
+
+#### utils.h
+
+**Purpose:** Utility functions and helpers
+
+**Contains:**
+- Helper macros
+- Common type definitions
+- Utility functions
+
+**Lines:** ~40
+
+#### kwin_version.hpp
+
+**Purpose:** KWin version detection
+
+**Contains:**
+- Version comparison macros
+- `KWIN_VERSION_CODE` macro
+- Current KWin version definitions
+
+**Lines:** ~20
+
+#### kwin_compat_6_5.hpp
+
+**Purpose:** Compatibility layer for Plasma 6.5
+
+**Contains:**
+- Type aliases for API differences
+- Compatibility shims for changed APIs
+
+**Used when:** Building for Plasma 6.5 or X11  
+**Lines:** ~15
+
+#### blur_extensions.cpp
+
+**Purpose:** Additional blur effect functionality
+
+**Lines:** ~12
+
+### Resource Files
+
+#### blur.qrc
+
+**Purpose:** Qt resource file
+
+**Contains:** Embedded resources for the effect  
+**Lines:** ~30
+
+#### metadata.json
+
+**Purpose:** KWin plugin metadata
+
+**Contains:**
+- Plugin name and description
+- Author information
+- Version number
+- Plugin category
+
+**Format:** JSON  
+**Lines:** ~25
+
+## KCM Module (`src/kcm/`)
+
+The KConfig Module provides the settings UI in System Settings.
+
+### blur_config.h, blur_config.cpp
+
+**Purpose:** Configuration dialog implementation
+
+**Key class:** `KWin::BlurEffectConfig`
+
+**Responsibilities:**
+- UI initialization
+- Settings loading and saving
+- Signal/slot connections
+- Input validation
+
+**Lines:** ~32 (header), ~190 (implementation)
+
+### blur_config.ui
+
+**Purpose:** Qt Designer UI definition
+
+**Contains:**
+- All configuration widgets
+- Layout definitions
+- Widget properties
+
+**Format:** Qt Designer XML  
+**Lines:** ~860
+
+### about.html
+
+**Purpose:** About page content
+
+**Format:** HTML  
+**Lines:** ~14
+
+### blur_config.qrc
+
+**Purpose:** KCM resource file
+
+**Contains:** Embedded resources for the KCM  
+**Lines:** ~5
+
+### CMakeLists.txt
+
+**Purpose:** KCM build configuration
+
+**Builds:**
+- KCM plugin library
+- UI file compilation
+- Resource compilation
+
+**Lines:** ~30
+
+## Shaders (`src/shaders/`)
+
+OpenGL shader programs for rendering effects. Each shader has both a standard and "core" profile version.
+
+### Blur Shaders
+
+#### downsample.frag, downsample_core.frag
+
+**Purpose:** Downsampling pass in Dual Kawase algorithm
+
+**Inputs:**
+- Source texture (higher resolution)
+- Offset and halfpixel uniforms
+
+**Output:** Downsampled texture
+
+#### upsample.frag, upsample_core.frag
+
+**Purpose:** Upsampling pass in Dual Kawase algorithm
+
+**Inputs:**
+- Source texture (lower resolution)
+- Offset and halfpixel uniforms
+
+**Output:** Upsampled texture
+
+#### noise.frag, noise_core.frag
+
+**Purpose:** Noise texture generation
+
+**Inputs:**
+- Noise parameters
+- Texture coordinates
+
+**Output:** Noise-augmented texture
+
+### Onscreen Rendering Shaders
+
+#### onscreen.frag, onscreen_core.frag
+
+**Purpose:** Standard rectangular blur rendering to screen
+
+**Inputs:**
+- Blurred texture
+- Color matrix (brightness/contrast/saturation)
+- MVP matrix
+
+**Output:** Final composited pixels
+
+#### onscreen_rounded.frag, onscreen_rounded.vert
+#### onscreen_rounded_core.frag, onscreen_rounded_core.vert
+
+**Purpose:** Rounded corner blur rendering to screen
+
+**Inputs:**
+- Blurred texture
+- Color matrix
+- Corner radius per corner
+- Opacity
+- Bounding box
+
+**Output:** Final composited pixels with rounded corners
+
+### Refraction Shaders
+
+#### refraction.frag, refraction_core.frag
+
+**Purpose:** Rectangular refraction effect
+
+**Inputs:**
+- Background texture
+- Refraction parameters (strength, edge size, etc.)
+- Color matrix
+
+**Output:** Refracted blur
+
+#### refraction_rounded.frag, refraction_rounded_core.frag
+
+**Purpose:** Rounded corner refraction effect
+
+**Inputs:**
+- Background texture
+- Refraction parameters
+- Corner radius
+- Color matrix
+
+**Output:** Refracted blur with rounded corners
+
+### Rounded Corner Mask Shaders
+
+#### rounded_corners.frag, rounded_corners.vert
+#### rounded_corners_core.frag, rounded_corners_core.vert
+
+**Purpose:** Apply rounded corner mask to blurred region
+
+**Inputs:**
+- Raw un-blurred pixels
+- Corner radius per corner
+- Bounding box
+
+**Output:** Masked pixels with rounded corners
+
+### Shader Variants
+
+Each shader has two versions:
+
+- **Standard** (e.g., `downsample.frag`): For OpenGL compatibility profile
+- **Core** (e.g., `downsample_core.frag`): For OpenGL core profile (3.2+)
+
+The core profile versions use modern GLSL syntax with explicit `in`/`out` variables.
+
+## Build System
+
+### Root CMakeLists.txt
+
+**Purpose:** Root build configuration
+
+**Defines:**
+- Project metadata (name, version)
+- Minimum CMake version (3.16.0)
+- C++ standard (C++23)
+- Qt and KF6 minimum versions
+- Build options (`BETTERBLUR_X11`)
+- Dependency finding
+- Version compatibility checks
+
+**Key variables:**
+- `PROJECT_VERSION`: Currently "2.2.0"
+- `QT_MIN_VERSION`: "6.6.0"
+- `KF_MIN_VERSION`: "5.240.0"
+- `CMAKE_CXX_STANDARD`: 23
+
+**Lines:** ~90
+
+### src/CMakeLists.txt
+
+**Purpose:** Source build configuration
+
+**Defines:**
+- Source file list
+- KConfig compiler invocation
+- Library target creation
+- Conditional X11/Wayland builds
+- Compiler flags
+- Install paths
+
+**Key sections:**
+- `better_blur_dx_SOURCES`: List of source files
+- `kconfig_add_kcfg_files`: Generates config classes
+- Conditional `BETTERBLUR_X11` logic
+- Compiler warnings: `-Wall -Wextra -Wunused -Wpedantic`
+
+**Lines:** ~47
+
+## Additional Directories
+
+### nix/
+
+NixOS packaging files for declarative package management.
+
+**Contains:**
+- `flake.nix`: Nix flake definition
+- Package derivations
+- Dependency specifications
+
+### tools/
+
+Development and build helper scripts.
+
+### .github/workflows/
+
+GitHub Actions CI/CD workflows for automated testing and releases.
+
+## Code Organization Principles
+
+### Separation of Concerns
+
+- **Effect logic** (`blur.cpp`): Core blur algorithm and KWin integration
+- **Window management** (`window_manager.cpp`): Window tracking and filtering
+- **Rendering passes** (`refraction_pass.cpp`, `rounded_corners_pass.cpp`): Specialized rendering
+- **Configuration** (`settings.cpp`, `blur.kcfg`): User settings
+- **UI** (`kcm/`): Settings interface
+
+### Namespace Usage
+
+- `KWin`: KWin effect classes and integration
+- `BBDX`: Better Blur DX specific classes (WindowManager, RefractionPass, etc.)
+
+### Modern C++ Features
+
+The codebase uses C++23 features including:
+- Smart pointers (`std::unique_ptr`, `std::shared_ptr`)
+- STL containers (`std::unordered_map`, `std::vector`)
+- `std::optional` for nullable values
+- Range-based for loops
+- Move semantics
+
+## File Naming Conventions
+
+- **Headers:** `.h` or `.hpp`
+- **Implementation:** `.cpp`
+- **Shaders:** `.frag` (fragment), `.vert` (vertex)
+- **Configuration:** `.kcfg` (KConfig XML), `.kcfgc` (compiler config)
+- **UI:** `.ui` (Qt Designer)
+- **Resources:** `.qrc` (Qt resources)
+
+## Next Steps
+
+- Review the [development overview](/development/overview) for architectural concepts
+- Learn how to [build from source](/development/building-from-source)
+- Explore the [KWin effect development documentation](https://develop.kde.org/docs/plasma/kwin/)

@@ -1,0 +1,139 @@
+---
+title: Getting Started
+description: First steps to enable and configure Better Blur DX after installation
+---
+
+After installing Better Blur DX, you'll need to enable the effect and make a few configuration changes to get started.
+
+<Note>
+If the effect stops working after a system upgrade, you will need to rebuild it or reinstall the package. The effect only works for the exact KWin version it was built for. Additionally, KWin needs to be restarted (e.g., via logout+login) to load an updated version of the effect.
+</Note>
+
+## Enable Better Blur DX
+
+<Steps>
+  <Step title="Open System Settings">
+    Navigate to **System Settings** from your application launcher or by pressing `Alt + F2` and typing "System Settings".
+  </Step>
+
+  <Step title="Navigate to Desktop Effects">
+    In System Settings, go to **Workspace Behavior** → **Desktop Effects**.
+  </Step>
+
+  <Step title="Disable conflicting blur effects">
+    Better Blur DX conflicts with the default KWin blur effect and other effects that replace it.
+
+    Search for "blur" in the effects list and disable any existing blur effects, particularly:
+    - **Blur** (the default KWin blur effect)
+    - Any other third-party blur effects
+
+    <Tip>
+    If you see double-blurring or windows that "look off", you likely have multiple blur effects enabled simultaneously. Make sure only Better Blur DX is active.
+    </Tip>
+  </Step>
+
+  <Step title="Enable Better Blur DX">
+    In the Desktop Effects page, search for "Better Blur DX" and check the box to enable it.
+
+    The effect should now be active. You can click the settings icon next to the effect name to access its configuration options.
+  </Step>
+</Steps>
+
+## Make Windows Transparent
+
+The blur effect only appears on transparent or translucent windows. If you don't see any blur after enabling the effect, it's because your windows are fully opaque. There are several ways to make windows transparent:
+
+<Accordion title="Use transparent themes">
+  Many applications support transparent themes. For example:
+  - **Konsole**: Settings → Edit Current Profile → Appearance → Choose a transparent color scheme
+  - **Dolphin**: Use a transparent color scheme if supported by your theme
+  - **VS Code/Electron apps**: Some have built-in transparency settings
+</Accordion>
+
+<Accordion title="Use a transparent color scheme">
+  Apply a system-wide transparent color scheme like [Alpha](https://store.kde.org/p/1972214) to make all KDE applications semi-transparent automatically.
+
+  1. Download and install a transparent color scheme
+  2. Go to **System Settings** → **Colors & Themes** → **Colors**
+  3. Select the transparent color scheme
+</Accordion>
+
+<Accordion title="Create window rules for opacity">
+  You can create window-specific rules to reduce opacity:
+
+  1. Right-click on a window's titlebar
+  2. Go to **More Actions** → **Configure Special Window Settings**
+  3. Click **Add Property** → **Appearance & Fixes** → **Active opacity** or **Inactive opacity**
+  4. Set the desired opacity percentage (e.g., 90%)
+  5. Click **OK** to apply
+</Accordion>
+
+## Basic Configuration
+
+Once the effect is enabled, you can adjust basic settings:
+
+<Steps>
+  <Step title="Access effect settings">
+    In the Desktop Effects page, click the **settings icon** (gear/wrench) next to Better Blur DX.
+  </Step>
+
+  <Step title="Adjust blur strength">
+    The **Blur Strength** slider controls how blurry the background appears. Higher values create a stronger blur effect.
+
+    **Default:** 15  
+    **Recommended range:** 10-20 for balanced visual appeal
+  </Step>
+
+  <Step title="Adjust noise strength">
+    The **Noise Strength** setting adds grain to the blur, which helps hide banding artifacts in smooth gradients.
+
+    **Default:** 5  
+    **Tip:** Increase this if you notice color banding on gradients
+  </Step>
+
+  <Step title="Fine-tune appearance">
+    Experiment with these settings to match your aesthetic preferences:
+    - **Brightness:** How bright the blurred background appears (Default: 100%)
+    - **Saturation:** Color intensity of the blurred background (Default: 150%)
+    - **Contrast:** Contrast level of the blurred background (Default: 100%)
+  </Step>
+</Steps>
+
+## Known Compatibility Issues
+
+<Warning>
+Better Blur DX has compatibility issues with certain KWin effects:
+</Warning>
+
+**Wobbly Windows**: The blur region is square and will either bleed outside the deformed window or KWin will skip the blur entirely during the wobble animation. It's recommended to disable this effect if you use Better Blur DX.
+
+## Performance Considerations
+
+Better Blur DX can be resource-intensive, especially with many windows open.
+
+<Accordion title="High cursor latency on Wayland (GPU-intensive scenarios)">
+  If you experience high cursor latency or stuttering on Wayland:
+
+  1. Set the environment variable: `KWIN_DRM_NO_AMS=1`
+  2. If that's not enough, try enabling or disabling the software cursor:
+     - `KWIN_FORCE_SW_CURSOR=0` (hardware cursor)
+     - `KWIN_FORCE_SW_CURSOR=1` (software cursor)
+
+  <Note>
+  Intel GPUs use software cursor by default due to a known bug, though it doesn't affect all GPUs.
+  </Note>
+</Accordion>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Configuration" icon="sliders" href="/usage/configuration">
+    Explore all configuration options including force blur and refraction
+  </Card>
+  <Card title="Window Transparency" icon="window-restore" href="/usage/window-transparency">
+    Learn detailed methods for making windows transparent
+  </Card>
+  <Card title="Window Classes" icon="tag" href="/usage/window-classes">
+    Understand how to target specific applications with blur
+  </Card>
+</CardGroup>

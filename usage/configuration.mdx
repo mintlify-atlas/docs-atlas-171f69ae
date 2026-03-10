@@ -1,0 +1,326 @@
+---
+title: Configuration
+description: Complete guide to all Better Blur DX configuration options
+---
+
+Better Blur DX provides extensive configuration options to customize the blur effect to your preferences. Access these settings from **System Settings** → **Desktop Effects** → **Better Blur DX** (click the settings icon).
+
+## General Settings
+
+These settings control the basic appearance of the blur effect.
+
+### Blur Strength
+
+Controls how "sharp" or blurred the background appears. Higher values create a more intense blur effect.
+
+- **Default:** 15
+- **Range:** 1-100
+- **Recommendation:** Values between 10-20 provide a good balance between visibility and aesthetics
+
+<Accordion title="Example configurations">
+  - **Subtle blur (5-10):** Background remains relatively clear, good for readability
+  - **Moderate blur (10-20):** Standard blur that provides good visual separation
+  - **Heavy blur (20-30+):** Strong blur effect for maximum visual distinction
+</Accordion>
+
+### Noise Strength
+
+Adds grain/noise texture to the blurred background. This is used to hide banding artifacts that can appear in smooth gradients.
+
+- **Default:** 5
+- **Range:** 0-100
+- **Purpose:** Eliminates visible color bands in gradient backgrounds
+
+<Tip>
+If you notice color banding (visible "steps" in color gradients) on your blurred backgrounds, increase the noise strength. If the blur looks too grainy, reduce it.
+</Tip>
+
+### Brightness
+
+Adjusts how bright the blurred background appears. Part of the contrast pass applied to the blur.
+
+- **Default:** 100%
+- **Range:** 0-200%
+- **Effect:** 
+  - Below 100%: Darker background
+  - Above 100%: Brighter background
+
+### Saturation
+
+Controls the color intensity of the blurred background. Part of the contrast pass.
+
+- **Default:** 150%
+- **Range:** 0-300%
+- **Effect:**
+  - 0%: Grayscale/desaturated
+  - 100%: Original colors
+  - 150%+: More vibrant, punchy colors
+
+<Note>
+The default 150% saturation gives the blur a more vibrant appearance, which is particularly effective for visual separation from foreground content.
+</Note>
+
+### Contrast
+
+Adjusts the contrast level of the blurred background. Part of the contrast pass.
+
+- **Default:** 100%
+- **Range:** 0-300%
+- **Effect:**
+  - Below 100%: Reduced contrast, flatter appearance
+  - Above 100%: Enhanced contrast, more dramatic differences between light and dark areas
+
+### Force Contrast Parameters
+
+By default, Better Blur DX respects when windows provide their own contrast pass parameters (brightness, saturation, contrast).
+
+- **Default:** Disabled (false)
+- **Use case:** Enable this to force your global settings to apply to all windows, overriding window-specific values
+
+<Accordion title="Why would windows provide their own values?">
+  Some surfaces, like Plasma panels and widgets, provide their own blur parameters that are designed to match the current theme. For example, [Plasma surfaces in the Breeze theme](https://invent.kde.org/plasma/libplasma/-/blob/v6.5.3/src/desktoptheme/breeze/plasmarc) have predefined values.
+
+  If you prefer consistent blur appearance across all windows regardless of their theme settings, enable this option.
+</Accordion>
+
+### Corner Radius
+
+Rounds the corners of the blurred background region by the specified amount.
+
+- **Default:** 0.0 pixels
+- **Range:** 0.0 and up
+- **Primary use:** Fixes the "korners" bug where square blur regions leak out behind rounded windows
+
+<Tip>
+If you use rounded window decorations, set this to match your decoration's corner radius (typically 8-12 pixels) to prevent blur from extending beyond the window corners.
+</Tip>
+
+<Note>
+This setting is ignored for windows that provide their own blur region, such as Plasma surfaces, as these are expected to be correctly set by the window.
+</Note>
+
+## Force Blur Settings
+
+These settings allow you to specify which windows should have blur applied, even if they don't explicitly request it.
+
+<Warning>
+Better Blur DX respects blur regions set by windows themselves (e.g., Plasma surfaces). Force blur settings are ignored in these cases to prevent conflicts.
+</Warning>
+
+### Classes of Windows to Force Blur
+
+Specify window classes that should have blur applied. Enter one window class per line.
+
+- **Default:** Example classes (class1, class2, class3)
+- **Format:** One class per line, supports regex matching
+- **Example:**
+
+```text
+konsole
+kate
+dolphin
+firefox
+```
+
+See the [Window Classes](/usage/window-classes) page for detailed information on obtaining window class names.
+
+### Blur Matching vs. Blur All Except Matching
+
+Two modes control how the window class list is used:
+
+<Accordion title="Blur Matching (default)">
+  **BlurMatching: true, BlurNonMatching: false**
+
+  Only windows that match the specified classes will be blurred. This is the default behavior.
+
+  Use this when you want to selectively blur specific applications.
+</Accordion>
+
+<Accordion title="Blur All Except Matching">
+  **BlurMatching: false, BlurNonMatching: true**
+
+  All windows will be blurred EXCEPT those matching the specified classes.
+
+  Use this when you want blur on everything except certain applications (e.g., games or video players).
+</Accordion>
+
+### Blur Window Decorations
+
+Controls whether window decorations (titlebars, borders) are blurred.
+
+- **Default:** Disabled (false)
+- **Enable when:** Your window decoration theme doesn't support blur natively
+- **Effect:** Overrides the blur region specified by the decoration
+
+<Warning>
+Enabling this option will override blur regions set by the window decoration itself. Only enable if your decoration doesn't have built-in blur support.
+</Warning>
+
+### Blur Menus
+
+Allows context menus and application menus to be blurred.
+
+- **Default:** Disabled (false)
+- **Note:** This only **allows** menus to be blurred; you still need to add them to the force blur window classes or enable "Blur all except matching"
+
+**Common menu window classes:**
+- `plasmashell` (Plasma menus)
+- Application-specific menu classes
+
+### Blur Docks
+
+Allows docks and panels to be blurred.
+
+- **Default:** Disabled (false)
+- **Note:** This only **allows** docks to be blurred; you still need to add them to the force blur window classes or enable "Blur all except matching"
+
+**Common dock window classes:**
+- `plasmashell` (Plasma panels)
+- `latte-dock`
+- `plank`
+
+<Tip>
+Plasma panels typically handle their own blur and don't need force blur. Only enable this for third-party docks that don't implement blur themselves.
+</Tip>
+
+## Refraction Settings
+
+Refraction creates a glass-like distortion effect at window edges, simulating light bending through glass.
+
+### Refraction Strength
+
+Controls the intensity of the refraction effect.
+
+- **Default:** 0 (disabled)
+- **Range:** 0-100
+- **Effect:** Higher values create more pronounced edge distortion
+
+<Accordion title="What does refraction look like?">
+  Refraction creates a subtle distortion at window edges that mimics how light bends when passing through glass. The background appears slightly warped near the edges, creating a more realistic glass effect.
+
+  Set to 0 to disable refraction entirely.
+</Accordion>
+
+### Refraction Mode
+
+Selects the refraction calculation method.
+
+- **Default:** 0
+- **Available modes:** Different algorithms for calculating the refraction effect
+- **Recommendation:** Experiment with different modes to find the visual style you prefer
+
+### Refraction Edge Size
+
+Controls the width of the refraction effect from the window edge.
+
+- **Default:** 20 pixels
+- **Range:** 1 and up
+- **Effect:** Larger values extend the refraction effect further from the edges
+
+### Refraction Normal Power
+
+Adjusts the falloff curve of the refraction effect.
+
+- **Default:** 2
+- **Range:** 1 and up
+- **Effect:** Higher values create a sharper falloff (refraction concentrated at edges)
+
+### Refraction Corner Radius
+
+Controls how refraction handles window corners.
+
+- **Default:** 8 pixels
+- **Recommendation:** Match this to your window corner radius for consistent appearance
+
+### Refraction RGB Fringing
+
+Adds chromatic aberration (color separation) to the refraction effect, simulating how glass can split light into colors.
+
+- **Default:** 1
+- **Range:** 0 (disabled) to higher values
+- **Effect:** Creates subtle color separation at edges for a more realistic glass effect
+
+### Refraction Texture Repeat Mode
+
+Controls how the background texture is sampled at window edges.
+
+- **Default:** 0
+- **Available modes:** Different texture sampling methods
+- **Effect:** Changes how the distorted background is rendered at edges
+
+## Configuration File Location
+
+Settings are stored in:
+```
+~/.config/kwinrc
+```
+
+Under the section `[Effect-better-blur-dx]`.
+
+<Warning>
+It's recommended to use the System Settings GUI to change configuration. Manual editing of the config file requires restarting KWin to take effect.
+</Warning>
+
+## Example Configurations
+
+<AccordionGroup>
+  <Accordion title="Subtle, performance-friendly blur">
+    ```text
+    Blur Strength: 10
+    Noise Strength: 3
+    Brightness: 100
+    Saturation: 120
+    Contrast: 100
+    Refraction Strength: 0
+    ```
+    Good for older hardware or maximizing performance.
+  </Accordion>
+
+  <Accordion title="Vibrant, modern blur">
+    ```text
+    Blur Strength: 15
+    Noise Strength: 5
+    Brightness: 95
+    Saturation: 160
+    Contrast: 110
+    Refraction Strength: 0
+    ```
+    The default-ish configuration with enhanced colors.
+  </Accordion>
+
+  <Accordion title="Frosted glass effect">
+    ```text
+    Blur Strength: 20
+    Noise Strength: 8
+    Brightness: 105
+    Saturation: 140
+    Contrast: 105
+    Refraction Strength: 30
+    Refraction Edge Size: 15
+    ```
+    Creates a realistic frosted glass appearance.
+  </Accordion>
+
+  <Accordion title="Dark, atmospheric blur">
+    ```text
+    Blur Strength: 18
+    Noise Strength: 6
+    Brightness: 80
+    Saturation: 130
+    Contrast: 120
+    Refraction Strength: 0
+    ```
+    Great for dark themes, reduces background brightness.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Window Transparency" icon="window-restore" href="/usage/window-transparency">
+    Learn how to make windows transparent to see the blur effect
+  </Card>
+  <Card title="Window Classes" icon="tag" href="/usage/window-classes">
+    Discover how to obtain and use window classes for force blur
+  </Card>
+</CardGroup>

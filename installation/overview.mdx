@@ -1,0 +1,72 @@
+---
+title: Installation Overview
+description: Choose the best installation method for your Linux distribution
+---
+
+Better Blur DX is available for multiple Linux distributions through various package managers and can also be built manually from source.
+
+## Quick Start
+
+Choose your distribution to get started:
+
+<CardGroup cols={2}>
+  <Card title="Arch Linux" icon="box" href="/installation/arch-linux">
+    Install from AUR packages
+  </Card>
+  <Card title="Gentoo" icon="box" href="/installation/gentoo">
+    Install from xarblu-overlay
+  </Card>
+  <Card title="Fedora" icon="box" href="/installation/fedora">
+    Install from COPR repository
+  </Card>
+  <Card title="NixOS" icon="box" href="/installation/nixos">
+    Install using flakes
+  </Card>
+  <Card title="Debian/Ubuntu" icon="box" href="/installation/debian">
+    Install on KDE Neon, Kubuntu, Ubuntu
+  </Card>
+  <Card title="openSUSE" icon="box" href="/installation/opensuse">
+    Install on openSUSE
+  </Card>
+  <Card title="Manual Build" icon="code" href="/installation/manual-build">
+    Build from source
+  </Card>
+</CardGroup>
+
+## Important Notes
+
+<Warning>
+  **Rebuild Required After System Upgrades**
+  
+  If the effect stops working after a system upgrade, you will need to rebuild it or reinstall the package. The effect only works for the *exact KWin version* it was built for.
+  
+  Additionally, KWin needs to be restarted (e.g., via logout + login) to load an updated version of the effect. The initial install doesn't require this.
+</Warning>
+
+## Wayland vs X11
+
+Better Blur DX is primarily developed for Wayland, which is the recommended display server:
+
+- **Wayland**: Fully supported and tested on Plasma 6.5 and 6.6
+- **X11**: Supported but requires explicit build option (`-DBETTERBLUR_X11=ON`) and is not actively tested
+
+<Note>
+  X11 is more or less deprecated and doesn't see API changes since Plasma 6.5. The Wayland and X11 versions will continue to drift apart in future releases.
+</Note>
+
+## Supported Plasma Versions
+
+Better Blur DX should always work on the current stable version of Plasma. Older versions aren't tested much and may or may not work.
+
+**Currently supported versions**: Plasma 6.5, 6.6
+
+## Next Steps
+
+After installation:
+
+1. Open **System Settings** > **Desktop Effects**
+2. Disable any existing blur effects (including the default KWin blur)
+3. Enable **Better Blur DX**
+4. Configure the effect settings to your preference
+
+For detailed usage instructions, see the [Configuration](/usage/configuration) section.

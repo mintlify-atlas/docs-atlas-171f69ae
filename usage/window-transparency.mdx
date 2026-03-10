@@ -1,0 +1,344 @@
+---
+title: Window Transparency
+description: Methods to make windows transparent so the blur effect is visible
+---
+
+Better Blur DX creates a beautiful blur effect behind windows, but the effect is only visible on transparent or translucent windows. If your windows are fully opaque, you won't see any blur. This guide covers all the methods to achieve window transparency.
+
+<Note>
+The blur effect works by processing the content **behind** the window. Without transparency, there's no way for the background to show through, making the blur invisible.
+</Note>
+
+## Method 1: Use Transparent Application Themes
+
+Many applications have built-in support for transparent themes or color schemes.
+
+### Konsole (KDE Terminal)
+
+<Steps>
+  <Step title="Open Konsole settings">
+    Go to **Settings** → **Edit Current Profile...**
+  </Step>
+
+  <Step title="Choose appearance">
+    Navigate to the **Appearance** tab
+  </Step>
+
+  <Step title="Select a transparent color scheme">
+    Look for color schemes with "Transparent" in the name, such as:
+    - Breeze Transparent
+    - Transparent Dark
+    - Any custom transparent schemes you've installed
+
+    Many color schemes include transparency settings that work automatically with blur effects.
+  </Step>
+
+  <Step title="Adjust transparency level (optional)">
+    Some themes allow you to adjust the opacity level. Experiment to find the right balance between readability and visual effect.
+  </Step>
+</Steps>
+
+### VS Code and Electron Apps
+
+Many Electron-based applications support transparency through extensions or settings:
+
+<Accordion title="VS Code transparency">
+  1. Install the "GlassIt-VSC" extension or similar transparency extensions
+  2. Configure opacity in settings (typically 80-95% for good readability)
+  3. Combine with transparent themes for best results
+</Accordion>
+
+<Accordion title="Other Electron apps">
+  Check the application's settings or extensions marketplace for transparency options. Common apps with transparency support:
+  - Discord
+  - Slack
+  - Spotify (with modifications)
+</Accordion>
+
+### Firefox and Chrome
+
+<Note>
+Browser transparency typically requires custom CSS or extensions and may have limitations on Wayland.
+</Note>
+
+- **Firefox:** Use userChrome.css modifications
+- **Chrome/Chromium:** Limited native support; some themes offer semi-transparency
+
+## Method 2: Use a Transparent Color Scheme
+
+Applying a system-wide transparent color scheme is the easiest way to make all KDE applications semi-transparent automatically.
+
+### Installing Alpha Color Scheme
+
+[Alpha](https://store.kde.org/p/1972214) is a popular transparent color scheme that works excellently with Better Blur DX.
+
+<Steps>
+  <Step title="Download the color scheme">
+    Visit the [KDE Store](https://store.kde.org/p/1972214) or download directly from System Settings.
+  </Step>
+
+  <Step title="Open color settings">
+    Go to **System Settings** → **Appearance** → **Colors**
+  </Step>
+
+  <Step title="Install color scheme">
+    Click **Get New Color Schemes...** and search for "Alpha" or manually install the downloaded file.
+  </Step>
+
+  <Step title="Apply the color scheme">
+    Select the Alpha color scheme from the list and click **Apply**.
+
+    <Tip>
+    Alpha comes in different variants (Light, Dark, etc.). Choose the one that matches your theme.
+    </Tip>
+  </Step>
+</Steps>
+
+### Creating Your Own Transparent Color Scheme
+
+You can modify existing color schemes to add transparency:
+
+<Steps>
+  <Step title="Start with an existing scheme">
+    In **System Settings** → **Colors**, select a color scheme similar to what you want.
+  </Step>
+
+  <Step title="Duplicate and edit">
+    Click the small edit icon and choose **Duplicate**. Give it a new name.
+  </Step>
+
+  <Step title="Adjust opacity">
+    For each color group (Window, Selection, etc.), you can adjust the alpha channel of colors. Focus on:
+    - **Window colors**: Background color opacity
+    - **View colors**: Content area background opacity
+
+    Set opacity to 70-90% for good visibility with blur.
+  </Step>
+
+  <Step title="Apply and test">
+    Click **Apply** and test the result. Fine-tune as needed.
+  </Step>
+</Steps>
+
+<Warning>
+Transparent color schemes affect all KDE applications. Make sure to maintain sufficient contrast for readability, especially for text.
+</Warning>
+
+## Method 3: Create Window Rules for Opacity
+
+Window rules allow you to set transparency on a per-application basis without changing themes.
+
+### Basic Window Rule
+
+<Steps>
+  <Step title="Right-click the window titlebar">
+    On the window you want to make transparent, right-click its titlebar.
+  </Step>
+
+  <Step title="Open special settings">
+    Select **More Actions** → **Configure Special Window Settings...** or **Configure Special Application Settings...**
+  </Step>
+
+  <Step title="Add opacity property">
+    Click **Add Property** → **Appearance & Fixes** → **Active opacity** or **Inactive opacity**
+
+    - **Active opacity:** Transparency when the window is focused
+    - **Inactive opacity:** Transparency when the window is not focused
+  </Step>
+
+  <Step title="Set opacity value">
+    Move the slider to set the desired opacity percentage:
+    - 100% = fully opaque (no transparency)
+    - 90% = slight transparency (recommended starting point)
+    - 80% = moderate transparency
+    - 70% = high transparency
+
+    <Tip>
+    For readable text content, stay above 80-85%. For terminals and editors, 90-95% often works best.
+    </Tip>
+  </Step>
+
+  <Step title="Apply and close">
+    Click **OK** to save the rule. The opacity change should apply immediately.
+  </Step>
+</Steps>
+
+### Advanced Window Rules
+
+You can create more sophisticated rules for different scenarios:
+
+<Accordion title="Different opacity for active/inactive windows">
+  Create two opacity properties:
+  - **Active opacity:** 95% (less transparent when focused)
+  - **Inactive opacity:** 80% (more transparent when not focused)
+
+  This creates a nice visual distinction between focused and unfocused windows.
+</Accordion>
+
+<Accordion title="Match multiple windows of the same type">
+  Instead of creating a rule for a specific window, set the match criteria to:
+  - **Window class:** Match all windows of the same application
+  - **Window types:** Match specific window types (normal, dialog, etc.)
+
+  This applies the opacity to all windows of that application.
+</Accordion>
+
+<Accordion title="Conditional opacity rules">
+  Use matching conditions to apply opacity only when:
+  - Window is maximized
+  - Window is on a specific desktop
+  - Window matches a certain title pattern
+
+  For example, make a terminal transparent only when it's not maximized.
+</Accordion>
+
+### Accessing Window Rules Settings Directly
+
+You can also manage all window rules from System Settings:
+
+**System Settings** → **Window Management** → **Window Rules**
+
+Here you can:
+- View all existing rules
+- Edit or delete rules
+- Create new rules manually
+- Import/export rule configurations
+
+## Method 4: Application-Specific Settings
+
+Some applications have built-in opacity or transparency settings.
+
+<AccordionGroup>
+  <Accordion title="Dolphin (KDE File Manager)">
+    Dolphin respects the system color scheme. Use a transparent color scheme (Method 2) for transparent Dolphin windows.
+
+    Alternatively, create a window rule to set Dolphin's opacity.
+  </Accordion>
+
+  <Accordion title="Kate (KDE Text Editor)">
+    Kate can use transparent color schemes for its editor background:
+    1. Go to **Settings** → **Configure Kate** → **Editor Component** → **Colors**
+    2. Select a color scheme with transparency or customize one
+
+    For the entire window transparency, use a system-wide transparent color scheme or window rule.
+  </Accordion>
+
+  <Accordion title="Yakuake (Drop-down Terminal)">
+    Yakuake respects Konsole color schemes:
+    1. Open Yakuake
+    2. Go to **Settings** → **Configure Yakuake** → **Appearance**
+    3. Select a transparent Konsole color scheme
+    4. Adjust background opacity slider if available
+  </Accordion>
+
+  <Accordion title="Alacritty (Terminal)">
+    Edit `~/.config/alacritty/alacritty.yml` or `alacritty.toml`:
+
+    ```yaml
+    window:
+      opacity: 0.9
+    ```
+
+    or
+
+    ```toml
+    [window]
+    opacity = 0.9
+    ```
+  </Accordion>
+
+  <Accordion title="Kitty (Terminal)">
+    Edit `~/.config/kitty/kitty.conf`:
+
+    ```conf
+    background_opacity 0.9
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Method 5: Compositor-Level Transparency
+
+KWin itself can apply transparency through various means beyond window rules.
+
+### Desktop Effects for Opacity
+
+Some KWin effects can affect window opacity:
+
+- **Translucency effect:** Provides opacity for inactive windows (found in Desktop Effects)
+- **Dim Inactive:** Darkens inactive windows (can combine with transparency)
+
+<Note>
+These effects are separate from Better Blur DX but can complement it by automatically adjusting window opacity based on focus state.
+</Note>
+
+## Choosing the Right Method
+
+<CardGroup cols={2}>
+  <Card title="For KDE-wide transparency" icon="palette">
+    Use a **transparent color scheme** (Method 2)
+    
+    Best for: Complete desktop consistency
+  </Card>
+
+  <Card title="For specific applications" icon="window-restore">
+    Use **window rules** (Method 3) or **app-specific settings** (Method 4)
+    
+    Best for: Fine-grained control per application
+  </Card>
+
+  <Card title="For terminals only" icon="terminal">
+    Use **transparent terminal themes** (Method 1)
+    
+    Best for: Quick setup without affecting other apps
+  </Card>
+
+  <Card title="For dynamic transparency" icon="magic">
+    Use **KWin effects** (Method 5) with window rules
+    
+    Best for: Context-aware transparency (focused/unfocused)
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Window is transparent but no blur appears">
+    1. Verify Better Blur DX is enabled in Desktop Effects
+    2. Check that no conflicting blur effects are active
+    3. Ensure the window class is included in force blur settings (if using force blur)
+    4. Restart KWin: `kwin_wayland --replace &` or logout/login
+  </Accordion>
+
+  <Accordion title="Transparency makes text unreadable">
+    1. Reduce transparency (increase opacity to 85-95%)
+    2. Increase blur strength for better background separation
+    3. Adjust brightness/contrast in Better Blur DX settings
+    4. Use a color scheme with better contrast
+  </Accordion>
+
+  <Accordion title="Some applications ignore transparency settings">
+    Some applications override system transparency settings. Try:
+    1. Window rules with higher priority
+    2. Application-specific transparency settings if available
+    3. Check if the application is running with special privileges (may ignore compositor effects)
+  </Accordion>
+
+  <Accordion title="Performance issues with transparency">
+    Transparency + blur can be GPU-intensive:
+    1. Reduce blur strength
+    2. Disable refraction effects
+    3. Limit the number of transparent windows
+    4. See [Getting Started - Performance Considerations](/usage/getting-started#performance-considerations)
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Configuration" icon="sliders" href="/usage/configuration">
+    Fine-tune blur settings for optimal appearance
+  </Card>
+  <Card title="Window Classes" icon="tag" href="/usage/window-classes">
+    Learn how to target specific windows with force blur
+  </Card>
+</CardGroup>

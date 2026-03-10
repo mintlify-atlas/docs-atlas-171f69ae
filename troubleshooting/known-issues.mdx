@@ -1,0 +1,104 @@
+---
+title: Known Issues
+description: Known issues, limitations, and bug fixes in Better Blur DX
+---
+
+## Effect Stops Working After Upgrade
+
+<Warning>
+The Better Blur DX effect only works for the **exact KWin version** it was built for. If the effect stops working after a system upgrade, you will need to rebuild it or reinstall the package.
+</Warning>
+
+After upgrading your system or Plasma version, you may notice that the blur effect is no longer working. This is because Better Blur DX is compiled against specific KWin libraries, and any version mismatch will cause the effect to fail.
+
+### Solution
+
+**For package installations:**
+
+Simply reinstall or update the package using your package manager:
+
+```bash
+# Arch Linux (AUR)
+yay -S kwin-effects-better-blur-dx
+
+# Fedora (COPR)
+dnf update kwin-effects-better-blur-dx
+
+# Gentoo
+emerge --ask kde-misc/kwin-effects-better-blur-dx
+```
+
+**For manual builds:**
+
+You need to rebuild the effect from source:
+
+```bash
+cd kwin-effects-better-blur-dx
+rm -rf build  # Remove the old build directory
+mkdir build
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+make -j$(nproc)
+sudo make install
+```
+
+<Note>
+After reinstalling or rebuilding, you must restart KWin to load the updated version of the effect. The easiest way to do this is to log out and log back in.
+</Note>
+
+## Bug Fixes Included in Better Blur DX
+
+Better Blur DX includes fixes for several blur-related Plasma bugs that haven't been patched upstream yet:
+
+### Blur Disappearing During Animations
+
+In the default KWin blur effect, blur may sometimes disappear during window animations or transitions. Better Blur DX includes patches to prevent this issue, ensuring consistent blur rendering throughout all animations.
+
+### Transparent Color Schemes with Breeze Style
+
+When using transparent color schemes (such as the [Alpha color scheme](https://store.kde.org/p/1972214)) with the Breeze application style, the default KWin blur doesn't work properly. Better Blur DX includes a fix that allows transparent color schemes to work correctly.
+
+This fix is based on [this pull request](https://github.com/taj-ny/kwin-effects-forceblur/pull/38) from the original Better Blur project.
+
+## Missing Features
+
+### Static Blur
+
+<Note>
+Static Blur is currently not available in Better Blur DX. This feature is being tracked in [issue #16](https://github.com/xarblu/kwin-effects-better-blur-dx/issues/16).
+</Note>
+
+The "Static Blur" feature from the original Better Blur is not yet implemented in Better Blur DX. This feature wasn't trivially portable to the Plasma 6.5 blur architecture and needs to be reimplemented from scratch.
+
+If you need this feature, you can:
+- Follow the progress on the [GitHub issue](https://github.com/xarblu/kwin-effects-better-blur-dx/issues/16)
+- Consider contributing to the implementation if you have C++ and KWin development experience
+
+## X11 Support Status
+
+<Warning>
+X11 support is considered deprecated and receives minimal testing. The X11 version of the effect must be explicitly built using the `-DBETTERBLUR_X11=ON` cmake option.
+</Warning>
+
+While Better Blur DX can be built for both X11 and Wayland, X11 support is not a priority:
+
+- X11 is not regularly tested and may have undiscovered issues
+- KWin X11 hasn't seen API changes since version 6.5, meaning the Wayland and X11 codebases will continue to diverge
+- Future Plasma releases may make maintaining X11 support increasingly difficult
+
+If you're experiencing issues on X11, consider switching to Wayland if possible. If you must use X11, you can report issues on the [GitHub issue tracker](https://github.com/xarblu/kwin-effects-better-blur-dx/issues), but fixes may take longer.
+
+## Reporting Issues
+
+If you encounter a bug or issue not listed here:
+
+1. Check the [GitHub issue tracker](https://github.com/xarblu/kwin-effects-better-blur-dx/issues) to see if it's already reported
+2. If not, create a new issue with:
+   - Your Plasma and KWin version
+   - Whether you're using Wayland or X11
+   - Steps to reproduce the issue
+   - Any relevant KWin logs or error messages
+
+<Tip>
+You can check your Plasma version by running `plasmashell --version` and your KWin version with `kwin_wayland --version` or `kwin_x11 --version`.
+</Tip>

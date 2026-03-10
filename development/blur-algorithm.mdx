@@ -1,0 +1,292 @@
+---
+title: Blur Algorithm
+description: Technical details of the Dual Kawase blur algorithm implementation
+---
+
+## Overview
+
+Better Blur DX implements the **Dual Kawase blur algorithm**, a highly efficient two-pass blur technique that achieves high-quality blur effects with minimal texture samples. The algorithm consists of downsampling and upsampling passes that progressively blur the image.
+
+## Dual Kawase Algorithm
+
+The Dual Kawase algorithm works by:
+
+1. **Downsampling Pass**: Progressively scales the image down by 50% each iteration while applying blur
+2. **Upsampling Pass**: Scales the image back up by 200% each iteration with additional blur
+3. **Final Render**: Applies color correction, noise, and rounded corners to the blurred result
+
+### Why Dual Kawase?
+
+- **Performance**: Requires only 8 texture samples per pass (vs. Gaussian blur's many more)
+- **Quality**: Produces smooth, natural-looking blur without visible artifacts
+- **Scalability**: Blur strength can be easily adjusted by changing iteration count and offset values
+
+## Blur Strength System
+
+The blur strength is controlled by two primary parameters configured in `blur.cpp:259-314`:
+
+### Iteration Count
+
+The number of downsample/upsample iterations determines the base blur radius. Better Blur DX supports up to 4 iterations:
+
+<ParamField path="m_iterationCount" type="size_t">
+  Number of downsample/upsample passes (1-4). Each iteration halves then doubles the texture size.
+</ParamField>
+
+### Offset Values
+
+The offset controls how far apart texture samples are taken. Each iteration has min/max offset constraints:
+
+```cpp
+// From blur.cpp:286-291
+blurOffsets.append({1.0, 2.0, 10});   // Iteration 1: Down sample size / 2
+blurOffsets.append({2.0, 3.0, 20});   // Iteration 2: Down sample size / 4
+blurOffsets.append({2.0, 5.0, 50});   // Iteration 3: Down sample size / 8
+blurOffsets.append({3.0, 8.0, 150});  // Iteration 4: Down sample size / 16
+```
+
+<Expandable title="Offset Constraints Explained">
+  <ParamField path="minOffset" type="float">
+    Minimum offset before blocky artifacts appear from downsampling
+  </ParamField>
+  
+  <ParamField path="maxOffset" type="float">
+    Maximum offset before diagonal line artifacts appear from the Kawase algorithm
+  </ParamField>
+  
+  <ParamField path="expandSize" type="int">
+    Minimum blur region expansion to prevent sampling outside the copied texture area
+  </ParamField>
+</Expandable>
+
+### Blur Strength Values
+
+The `initBlurStrengthValues()` function (blur.cpp:259) creates 15 evenly-distributed blur strength presets:
+
+```cpp
+struct BlurValuesStruct {
+    int iteration;    // Number of downsample/upsample passes
+    float offset;     // Sample offset distance
+};
+```
+
+These values are computed to distribute blur strengths evenly across the offset ranges, giving users smooth control from subtle to intense blur.
+
+## Downsample Pass
+
+Implemented in `blur.cpp:993-1019` and `shaders/downsample.frag`.
+
+### Algorithm
+
+The downsample pass uses a weighted 5-sample pattern:
+
+```glsl
+vec4 sum = texture2D(texUnit, uv) * 4.0;                              // Center: weight 4
+sum += texture2D(texUnit, uv - halfpixel.xy * offset);               // Top-left
+sum += texture2D(texUnit, uv + halfpixel.xy * offset);               // Bottom-right
+sum += texture2D(texUnit, uv + vec2(halfpixel.x, -halfpixel.y) * offset);  // Top-right
+sum += texture2D(texUnit, uv - vec2(halfpixel.x, -halfpixel.y) * offset);  // Bottom-left
+
+gl_FragColor = sum / 8.0;  // Normalize by total weight
+```
+
+### Process
+
+1. Render to progressively smaller framebuffers (each 50% of previous size)
+2. Sample the center pixel heavily (weight 4) plus 4 diagonal neighbors (weight 1 each)
+3. Apply offset multiplier to control blur spread
+4. Repeat for `m_iterationCount` iterations
+
+<ParamField path="halfpixel" type="vec2">
+  Half the pixel size of the source texture, used for precise texture coordinate offsets
+</ParamField>
+
+## Upsample Pass
+
+Implemented in `blur.cpp:1021-1046` and `shaders/upsample.frag`.
+
+### Algorithm
+
+The upsample pass uses an 8-sample tent filter pattern:
+
+```glsl
+vec4 sum = texture2D(texUnit, uv + vec2(-halfpixel.x * 2.0, 0.0) * offset);        // weight 1
+sum += texture2D(texUnit, uv + vec2(-halfpixel.x, halfpixel.y) * offset) * 2.0;   // weight 2
+sum += texture2D(texUnit, uv + vec2(0.0, halfpixel.y * 2.0) * offset);            // weight 1
+sum += texture2D(texUnit, uv + vec2(halfpixel.x, halfpixel.y) * offset) * 2.0;    // weight 2
+sum += texture2D(texUnit, uv + vec2(halfpixel.x * 2.0, 0.0) * offset);            // weight 1
+sum += texture2D(texUnit, uv + vec2(halfpixel.x, -halfpixel.y) * offset) * 2.0;   // weight 2
+sum += texture2D(texUnit, uv + vec2(0.0, -halfpixel.y * 2.0) * offset);           // weight 1
+sum += texture2D(texUnit, uv + vec2(-halfpixel.x, -halfpixel.y) * offset) * 2.0;  // weight 2
+
+gl_FragColor = sum / 12.0;  // Total weight: 12
+```
+
+### Pattern
+
+The tent filter creates a weighted cross pattern:
+```
+  1
+2   2
+  1
+2   2
+```
+
+This ensures smooth upsampling without blockiness.
+
+## Noise Pass
+
+Implemented in `blur.cpp:1138-1166` and `shaders/noise.frag`.
+
+### Purpose
+
+Adds subtle grain to prevent **color banding** in smooth gradients. Banding occurs when 8-bit color depth creates visible steps in smooth blur transitions.
+
+### Implementation
+
+```cpp
+// Generate 256x256 grayscale noise texture
+for (int y = 0; y < noiseImage.height(); y++) {
+    uint8_t *noiseImageLine = (uint8_t *)noiseImage.scanLine(y);
+    for (int x = 0; x < noiseImage.width(); x++) {
+        noiseImageLine[x] = std::rand() % m_noiseStrength;
+    }
+}
+```
+
+The noise texture:
+- Is generated once and cached (blur.cpp:719)
+- Scales with screen DPI for consistent appearance
+- Uses `GL_REPEAT` wrap mode for seamless tiling
+- Is rendered additively over the blurred result
+
+<ParamField path="m_noiseStrength" type="int">
+  Maximum random value per pixel (0-255). Higher values create more visible grain.
+</ParamField>
+
+## Contrast Pass
+
+Applies color transformation for brightness, saturation, and contrast adjustment.
+
+### Color Matrix
+
+Implemented in `blur.cpp:82-113` as `colorTransformMatrix()`:
+
+```cpp
+QMatrix4x4 colorTransformMatrix(qreal saturation, qreal contrast, qreal brightness)
+{
+    QMatrix4x4 saturationMatrix;
+    QMatrix4x4 contrastMatrix;
+    QMatrix4x4 brightnessMatrix;
+    
+    // Saturation matrix (preserves luminance)
+    if (!qFuzzyCompare(saturation, 1.0)) {
+        const qreal rval = (1.0 - saturation) * 0.2126;
+        const qreal gval = (1.0 - saturation) * 0.7152;
+        const qreal bval = (1.0 - saturation) * 0.0722;
+        // ...
+    }
+    
+    return contrastMatrix * saturationMatrix * brightnessMatrix;
+}
+```
+
+### Application
+
+The color matrix is applied in the onscreen pass shader:
+
+```glsl
+gl_FragColor = (sum / 12.0) * colorMatrix;
+```
+
+<Expandable title="Color Matrix Parameters">
+  <ParamField path="saturation" type="qreal">
+    Controls color intensity (1.0 = normal, less than 1.0 = desaturated, greater than 1.0 = oversaturated)
+  </ParamField>
+  
+  <ParamField path="contrast" type="qreal">
+    Controls value range (1.0 = normal, less than 1.0 = low contrast, greater than 1.0 = high contrast)
+  </ParamField>
+  
+  <ParamField path="brightness" type="qreal">
+    Scales RGB values uniformly (1.0 = normal, less than 1.0 = darker, greater than 1.0 = brighter)
+  </ParamField>
+</Expandable>
+
+### Per-Window Override
+
+Windows can override the global color matrix via Wayland protocols:
+
+```cpp
+// blur.cpp:367-375
+if (SurfaceInterface *surface = w->surface()) {
+    if (surface->contrast()) {
+        saturation = surface->contrast()->saturation();
+        contrast = surface->contrast()->contrast();
+    }
+}
+```
+
+This allows applications like Plasma panels to request specific contrast values.
+
+## Render Pipeline
+
+The complete blur rendering pipeline in `blur()` (blur.cpp:755-1173):
+
+1. **Capture Background** (blur.cpp:875-886): Copy screen region to framebuffer 0
+2. **Downsample** (blur.cpp:993-1019): Apply downsample shader `m_iterationCount` times
+3. **Upsample** (blur.cpp:1021-1046): Apply upsample shader back to original size
+4. **Onscreen Pass** (blur.cpp:1094-1136): Render with color matrix and opacity
+5. **Noise Pass** (blur.cpp:1138-1166): Add grain if `m_noiseStrength > 0`
+6. **Rounded Corners** (blur.cpp:1168-1170): Apply corner masking if needed
+
+### Framebuffer Management
+
+Framebuffers are allocated dynamically (blur.cpp:843-873):
+
+```cpp
+for (size_t i = 0; i <= m_iterationCount; ++i) {
+    auto texture = GLTexture::allocate(textureFormat, 
+                                       BBDX::getTextureSize(backgroundRect, i));
+    texture->setFilter(GL_LINEAR);
+    texture->setWrapMode(GL_CLAMP_TO_EDGE);
+    
+    auto framebuffer = std::make_unique<GLFramebuffer>(texture.get());
+    // Store in renderInfo.textures and renderInfo.framebuffers
+}
+```
+
+- **Framebuffer 0**: Contains unblurred background (cache)
+- **Framebuffers 1-N**: Downsampled textures at 1/2, 1/4, 1/8, 1/16 size
+- Textures match render target format (usually GL_RGBA8)
+
+## Performance Characteristics
+
+### Texture Samples per Pixel
+
+- **Downsample**: 5 samples × `m_iterationCount` iterations
+- **Upsample**: 8 samples × (`m_iterationCount` - 1) iterations  
+- **Onscreen**: 8 samples
+- **Noise**: 1 sample (if enabled)
+
+**Example** (blur strength 7, 2 iterations):
+- Downsample: 5 samples × 2 = 10
+- Upsample: 8 samples × 1 = 8
+- Onscreen: 8 samples
+- **Total**: ~26 texture samples
+
+Compare to Gaussian blur: 100+ samples for similar quality!
+
+### Memory Usage
+
+Framebuffer memory per window (assuming 1920×1080 RGBA8):
+
+- Iteration 1: 960×540 × 4 bytes = 2.07 MB
+- Iteration 2: 480×270 × 4 bytes = 0.52 MB  
+- Iteration 3: 240×135 × 4 bytes = 0.13 MB
+- Iteration 4: 120×67 × 4 bytes = 0.03 MB
+- **Total**: ~2.75 MB per blurred window
+
+<Note>
+  Framebuffers are cached per RenderView and only reallocated when window size, iteration count, or texture format changes.
+</Note>

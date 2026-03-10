@@ -1,0 +1,427 @@
+---
+title: Window Classes
+description: How to obtain and use window classes for targeting specific applications with blur
+---
+
+Window classes are identifiers used by KWin to distinguish different applications and window types. Better Blur DX uses window classes to determine which windows should have blur applied when using force blur functionality.
+
+## What Are Window Classes?
+
+Every window in KWin has associated class information that typically includes:
+
+- **Resource Class:** The general application class (e.g., `firefox`, `konsole`)
+- **Resource Name:** A more specific identifier (e.g., `Navigator` for Firefox)
+- **Window Title:** The current title of the window (dynamic)
+
+For Better Blur DX, you primarily use the **resource class** or **resource name** to identify windows.
+
+## Method 1: Using qdbus (Recommended)
+
+The `qdbus` command-line tool provides the most comprehensive window information.
+
+<Steps>
+  <Step title="Open a terminal">
+    Launch Konsole or your preferred terminal emulator.
+  </Step>
+
+  <Step title="Run the query command">
+    Execute the following command:
+
+    ```bash
+    qdbus org.kde.KWin /KWin org.kde.KWin.queryWindowInfo
+    ```
+
+    Your cursor will change to a crosshair or selection cursor.
+  </Step>
+
+  <Step title="Click on the target window">
+    Click on the window you want to identify. The terminal will display detailed information about that window.
+  </Step>
+
+  <Step title="Find the class information">
+    Look for these fields in the output:
+
+    ```
+    resourceClass: konsole
+    resourceName: konsole
+    ```
+
+    You can use either value in Better Blur DX settings.
+  </Step>
+</Steps>
+
+### Example Output
+
+```bash
+$ qdbus org.kde.KWin /KWin org.kde.KWin.queryWindowInfo
+# Click on a Firefox window
+
+caption: Mozilla Firefox
+resourceClass: firefox
+resourceName: Navigator
+role: browser
+windowType: Normal
+...
+```
+
+In this example, you could use either `firefox` or `Navigator` to target Firefox windows.
+
+<Tip>
+The `resourceClass` is typically the most reliable identifier as it's consistent across different window instances of the same application.
+</Tip>
+
+## Method 2: Using Window Settings Dialog
+
+KDE provides a graphical method to identify window classes through the window configuration dialog.
+
+<Steps>
+  <Step title="Right-click the window titlebar">
+    On the window you want to identify, right-click its titlebar.
+  </Step>
+
+  <Step title="Open special settings">
+    Select **More Actions** → **Configure Special Window Settings...** or **Configure Special Application Settings...**
+  </Step>
+
+  <Step title="Find the window class">
+    Look for the field labeled **Window class (application)** near the top of the dialog.
+
+    It typically shows in the format: `resourceName resourceClass`
+
+    For example: `Navigator firefox`
+  </Step>
+
+  <Step title="Extract the class name">
+    If the window class shows two words (e.g., `Navigator firefox`), you can use either:
+    - The first word: `Navigator`
+    - The second word: `firefox`
+    - The entire string: `Navigator firefox` (though usually unnecessary)
+
+    <Note>
+    Using just the `resourceClass` (second word) is typically more reliable and recommended.
+    </Note>
+  </Step>
+</Steps>
+
+### Common Window Class Patterns
+
+<AccordionGroup>
+  <Accordion title="Applications with single-word class">
+    ```
+    konsole konsole → Use: konsole
+    dolphin dolphin → Use: dolphin
+    kate kate → Use: kate
+    ```
+
+    When both values are the same, use either one.
+  </Accordion>
+
+  <Accordion title="Applications with different resource name and class">
+    ```
+    Navigator firefox → Use: firefox (recommended) or Navigator
+    code code-oss → Use: code-oss (recommended) or code
+    ```
+
+    Prefer the resourceClass (second value) for consistency.
+  </Accordion>
+
+  <Accordion title="Applications with spaces in class names">
+    ```
+    jetbrains-pycharm jetbrains-pycharm → Use: jetbrains-pycharm
+    ```
+
+    Use the exact string including hyphens.
+  </Accordion>
+</AccordionGroup>
+
+## Method 3: Using xprop (X11 Only)
+
+<Warning>
+This method only works on X11 sessions, not on Wayland. For Wayland, use Method 1 (qdbus) instead.
+</Warning>
+
+If you're running KDE on X11, you can use `xprop`:
+
+<Steps>
+  <Step title="Run xprop">
+    ```bash
+    xprop WM_CLASS
+    ```
+
+    Your cursor will change to a crosshair.
+  </Step>
+
+  <Step title="Click the target window">
+    Click on the window you want to identify.
+  </Step>
+
+  <Step title="Read the output">
+    The output will be in the format:
+
+    ```
+    WM_CLASS(STRING) = "resourceName", "resourceClass"
+    ```
+
+    For example:
+    ```
+    WM_CLASS(STRING) = "Navigator", "firefox"
+    ```
+
+    Use the second value (`firefox`) for Better Blur DX.
+  </Step>
+</Steps>
+
+## Using Window Classes in Better Blur DX
+
+Once you've identified the window classes, add them to Better Blur DX configuration.
+
+<Steps>
+  <Step title="Open Better Blur DX settings">
+    Go to **System Settings** → **Desktop Effects** → **Better Blur DX** (click settings icon)
+  </Step>
+
+  <Step title="Navigate to Force Blur section">
+    Find the **Classes of windows to force blur** text field.
+  </Step>
+
+  <Step title="Add window classes">
+    Enter one window class per line:
+
+    ```text
+    konsole
+    dolphin
+    kate
+    firefox
+    code-oss
+    ```
+
+    <Tip>
+    You don't need quotes or any special formatting—just the class name, one per line.
+    </Tip>
+  </Step>
+
+  <Step title="Choose blur mode">
+    Decide whether to:
+    - **Blur matching windows** (only these windows get blur)
+    - **Blur all except matching** (these windows DON'T get blur, everything else does)
+  </Step>
+
+  <Step title="Apply settings">
+    Click **Apply** or **OK** to save the configuration.
+  </Step>
+</Steps>
+
+## Regex Pattern Matching
+
+Better Blur DX supports regular expressions (regex) for more flexible window matching.
+
+### Basic Regex Examples
+
+<AccordionGroup>
+  <Accordion title="Match multiple similar classes">
+    To match all JetBrains IDEs:
+
+    ```regex
+    jetbrains-.*
+    ```
+
+    This matches:
+    - `jetbrains-pycharm`
+    - `jetbrains-idea`
+    - `jetbrains-webstorm`
+    - etc.
+  </Accordion>
+
+  <Accordion title="Case-insensitive matching">
+    To match Firefox regardless of capitalization:
+
+    ```regex
+    (?i)firefox
+    ```
+
+    This matches: `firefox`, `Firefox`, `FIREFOX`, etc.
+  </Accordion>
+
+  <Accordion title="Match multiple specific applications">
+    To match either Konsole or Alacritty:
+
+    ```regex
+    (konsole|alacritty)
+    ```
+
+    This matches either window class exactly.
+  </Accordion>
+
+  <Accordion title="Match windows with specific patterns">
+    To match all windows ending in "terminal":
+
+    ```regex
+    .*terminal$
+    ```
+
+    This matches:
+    - `gnome-terminal`
+    - `xfce4-terminal`
+    - `lxterminal`
+    - etc.
+  </Accordion>
+</AccordionGroup>
+
+### Regex Syntax Reference
+
+| Pattern | Description | Example |
+|---------|-------------|----------|
+| `.` | Any single character | `k.te` matches `kate` |
+| `*` | Zero or more of previous | `fire.*` matches `firefox`, `firewall` |
+| `+` | One or more of previous | `fire+` matches `fire`, `firee` |
+| `^` | Start of string | `^konsole` matches only if starts with "konsole" |
+| `$` | End of string | `dolphin$` matches only if ends with "dolphin" |
+| `\|` | OR operator | `(kate\|kwrite)` matches either |
+| `[abc]` | Any character in set | `[kd]ate` matches `kate` or `date` |
+| `[^abc]` | Any character NOT in set | `[^k]ate` matches `date` but not `kate` |
+| `(?i)` | Case insensitive | `(?i)firefox` matches any case |
+
+<Warning>
+Regex patterns can be powerful but also error-prone. Test your patterns carefully to ensure they match only the intended windows. Invalid regex patterns may cause the effect to not apply correctly.
+</Warning>
+
+## Common Window Classes Reference
+
+Here's a quick reference of common KDE and third-party application window classes:
+
+### KDE Applications
+
+```text
+konsole          # Konsole terminal
+dolphin          # Dolphin file manager
+kate             # Kate text editor
+kwrite           # KWrite text editor
+gwenview         # Gwenview image viewer
+okular           # Okular document viewer
+spectacle        # Spectacle screenshot tool
+krunner          # KRunner application launcher
+plasmashell      # Plasma desktop shell (panels, widgets)
+systemsettings   # System Settings
+kdevelop         # KDevelop IDE
+```
+
+### Common Third-Party Applications
+
+```text
+firefox          # Mozilla Firefox
+chromium         # Chromium browser
+chrome           # Google Chrome (typically: google-chrome)
+thunderbird      # Mozilla Thunderbird
+code-oss         # VS Code (open source build)
+code             # VS Code (proprietary build)
+alacritty        # Alacritty terminal
+kitty            # Kitty terminal
+gimp-2.10        # GIMP (version specific)
+inkscape         # Inkscape
+blender          # Blender
+steam            # Steam client
+spotify          # Spotify
+discord          # Discord
+```
+
+### Special Window Types
+
+<Accordion title="Plasma components">
+  ```text
+  plasmashell      # All Plasma UI elements (panels, widgets, etc.)
+  krunner          # Application launcher
+  ksmserver        # Session manager
+  ```
+
+  <Note>
+  Plasma components typically handle their own blur and usually don't need force blur. Only add these if you have specific requirements.
+  </Note>
+</Accordion>
+
+<Accordion title="Dialogs and menus">
+  Dialogs and menus often inherit the parent application's window class. To blur them:
+  1. Enable **Blur menus** in Better Blur DX settings
+  2. Add the parent application's class to the force blur list
+
+  For standalone dialogs, use `qdbus` to identify their specific class.
+</Accordion>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Window class doesn't seem to work">
+    1. Verify the class name is exactly correct (case-sensitive)
+    2. Make sure there are no extra spaces or special characters
+    3. Try using the other value (resourceName vs resourceClass)
+    4. Check if the window provides its own blur region (force blur won't override this)
+    5. Restart KWin after making changes: logout/login or `kwin_wayland --replace &`
+  </Accordion>
+
+  <Accordion title="Some windows of the same application blur, others don't">
+    The application may use different window classes for different window types:
+    1. Check each window individually with `qdbus`
+    2. Add all relevant classes to the list
+    3. Consider using regex to match multiple related classes
+  </Accordion>
+
+  <Accordion title="Regex pattern doesn't match as expected">
+    1. Test your regex pattern with an online regex tester
+    2. Remember that regex is case-sensitive by default (use `(?i)` for case-insensitive)
+    3. Escape special characters with backslash: `\.`, `\(`, `\)`, etc.
+    4. Start simple and gradually add complexity
+  </Accordion>
+
+  <Accordion title="Can't run qdbus command">
+    Ensure you have Qt D-Bus tools installed:
+    
+    **Arch Linux:**
+    ```bash
+    sudo pacman -S qt6-tools
+    ```
+
+    **Debian/Ubuntu:**
+    ```bash
+    sudo apt install qt6-tools-dev-tools
+    ```
+
+    **Fedora:**
+    ```bash
+    sudo dnf install qt6-qttools
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Best Practices
+
+<Steps>
+  <Step title="Use resourceClass when available">
+    The `resourceClass` (typically the second value) is usually more reliable than `resourceName` for identifying applications consistently.
+  </Step>
+
+  <Step title="Test one class at a time">
+    When adding multiple window classes, test each one individually to ensure it works before adding more. This makes troubleshooting easier.
+  </Step>
+
+  <Step title="Document your regex patterns">
+    If using complex regex patterns, keep notes about what each pattern is intended to match. This helps when you need to modify them later.
+  </Step>
+
+  <Step title="Consider performance">
+    Adding many windows to force blur can be GPU-intensive. Only add windows that actually benefit from blur and where you've made them transparent.
+  </Step>
+
+  <Step title="Use 'Blur all except' for gaming">
+    If you want blur on most windows but need to exclude games and video players for performance, use the "Blur all except matching" mode and list the exceptions.
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Configuration" icon="sliders" href="/usage/configuration">
+    Explore all configuration options for fine-tuning blur behavior
+  </Card>
+  <Card title="Window Transparency" icon="window-restore" href="/usage/window-transparency">
+    Learn how to make windows transparent to see the blur effect
+  </Card>
+</CardGroup>

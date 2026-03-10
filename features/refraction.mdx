@@ -1,0 +1,302 @@
+---
+title: Refraction Effects
+description: Create glass-like distortion effects as an alternative to the contrast pass
+---
+
+Refraction is an advanced visual effect that simulates light bending through glass, creating a lens-like distortion of the background behind blurred windows. It serves as an alternative to the standard contrast pass.
+
+<Warning>
+  Refraction was **removed** in Better Blur DX 2.0.0 and **re-implemented** in version 2.2.0 for Plasma 6.6. If you're using version 2.0.x or 2.1.x, refraction is not available.
+</Warning>
+
+## What Refraction Does
+
+When enabled, refraction replaces the default contrast pass (brightness, saturation, contrast) with a shader that simulates glass refraction. Instead of simply adjusting colors, it **distorts** the background image, creating a more physically realistic glass effect.
+
+### Visual Description
+
+Refraction creates the appearance of:
+- Light bending at the edges of windows (like looking through curved glass)
+- Subtle distortion that increases toward window borders
+- Optional chromatic aberration (RGB color separation)
+- Lens-like bulging or concave effects
+
+<Note>
+  Refraction is **disabled by default**. Set Refraction Strength above 0 to enable the effect.
+</Note>
+
+## Refraction Strength
+
+Controls how intense the distortion effect is.
+
+- **Range:** 0 to 30
+- **Default:** 0 (disabled)
+- **Slider labels:** Off → Strong
+
+### Effect
+
+- **0** - Refraction disabled, normal contrast pass used
+- **1-10** - Subtle glass effect, suitable for everyday use
+- **11-20** - Moderate distortion, noticeable lens effect
+- **21-30** - Strong distortion, dramatic artistic effect
+
+<Info>
+  Internally, the strength is normalized to a 0.0-1.0 range (divided by 30.0) before being passed to the shader.
+</Info>
+
+### Usage Tips
+
+- Start with strength 5-10 for a subtle enhancement
+- Use 15-20 for a prominent glass aesthetic
+- Values above 25 create surreal, artistic distortions
+
+## Refraction Mode
+
+Controls the type of lens distortion applied.
+
+### Basic (Bulge)
+
+Creates a convex lens effect - the background appears to bulge outward at the edges of the window, as if looking through the outside of a glass bubble.
+
+- **Best for:** Subtle, natural-looking glass effects
+- **Visual:** Edges pushed outward, center relatively stable
+- **Use case:** Everyday desktop aesthetics
+
+### Concave (Lens)
+
+Creates a concave lens effect - the background appears to curve inward at the edges, as if looking through a magnifying glass or the inside of a glass bowl.
+
+- **Best for:** Dramatic, artistic effects
+- **Visual:** Edges pulled inward, stronger central distortion
+- **Use case:** High-contrast themes, showcase setups
+
+<Note>
+  The mode is selected via a combo box with two options: "Basic (Bulge)" (mode 0) and "Concave (Lens)" (mode 1).
+</Note>
+
+## Refraction Edge Size
+
+Controls how wide the refraction effect extends from the window borders.
+
+- **Range:** 0 to 30
+- **Default:** 20
+- **Slider labels:** Small → Wide
+- **Actual pixels:** Range value × 10 (0-300 pixels)
+
+### Effect
+
+- **Small values (1-10)** - Refraction only at immediate window edges
+- **Medium values (11-20)** - Refraction extends into the window interior
+- **Large values (21-30)** - Refraction affects most of the window area
+
+The edge size determines the "depth" of the glass effect. Larger values create a more gradual, natural-looking transition.
+
+### Automatic Clamping
+
+The edge size is automatically clamped to not exceed half the window's width or height. This prevents the refraction zones from overlapping in small windows.
+
+<Info>
+  The internal scaling factor of 10.0 means setting the slider to 20 creates a 200-pixel refraction zone from each edge.
+</Info>
+
+## Normal Power (Falloff)
+
+Controls how the refraction intensity falls off from the edge toward the center.
+
+- **Range:** 2 to 22
+- **Default:** 2
+- **Slider labels:** Linear → Round
+- **Internal scaling:** Range value × 0.5
+
+### Effect
+
+- **Low values (2-6)** - Linear falloff, uniform intensity across edge zone
+- **Medium values (7-15)** - Smooth curve, gradual transition
+- **High values (16-22)** - Sharp round falloff, effect concentrated at edges
+
+"Normal power" refers to the exponent applied to the distance calculation in the shader. Higher values create more dramatic, non-linear transitions.
+
+### Usage Tips
+
+- Use low values (2-5) for even, consistent distortion
+- Use medium values (6-12) for natural glass appearance
+- Use high values (15+) for concentrated edge effects
+
+## Refraction Corner Radius
+
+Controls the corner roundness of the refraction effect itself (not the window blur region).
+
+- **Range:** 0 to 200 pixels
+- **Default:** 8
+- **Slider labels:** Square → Round
+- **Step snapping:** Snapped to ~6.67 pixel steps (30 total steps)
+
+### Effect
+
+This determines the shape of the refraction boundary:
+
+- **0** - Sharp rectangular corners for the refraction zone
+- **8-12** - Slight rounding, matches typical window corners
+- **20+** - Very rounded corners, softer appearance
+- **100+** - Extreme rounding, nearly circular effect
+
+<Note>
+  This is **separate** from the main Corner Radius setting. The main setting affects the blur region clipping, while this setting affects the refraction distortion boundaries.
+</Note>
+
+## RGB Fringing Effect
+
+Simulates chromatic aberration - the separation of colors that occurs in real glass due to different refractive indices for different wavelengths.
+
+- **Range:** 0 to 30
+- **Default:** 1
+- **Slider labels:** Off → Strong
+- **Normalized range:** 0.0-1.0 (divided by 30.0)
+
+### Effect
+
+- **0** - No color separation, unified distortion
+- **1-10** - Subtle color fringing, realistic glass effect
+- **11-20** - Noticeable RGB separation at edges
+- **21-30** - Extreme chromatic aberration, artistic effect
+
+When enabled, the red, green, and blue color channels are distorted by slightly different amounts, creating colored fringes at high-contrast edges (like the rainbow edges you see in cheap lenses).
+
+### Visual Description
+
+At window edges, instead of clean distortion, you'll see:
+- Red shifted slightly in one direction
+- Blue shifted slightly in the opposite direction
+- Green in the middle
+
+This creates a rainbow-like fringe effect that enhances the glass illusion.
+
+## Texture Repeat Modes
+
+Controls how the distortion behaves at the absolute edges of the blurred background texture.
+
+### Clamp (Extend Edge Pixels)
+
+The edge pixels of the background are extended infinitely. When the refraction tries to sample beyond the texture boundary, it receives the color of the edge pixel.
+
+- **Effect:** Clean, solid color at extreme distortion
+- **Best for:** Strong refraction with clean edges
+- **Mode value:** 0
+
+### Flip (Mirror Texture)
+
+The background texture is mirrored at the boundaries. When the refraction samples beyond the edge, it receives the mirrored texture.
+
+- **Effect:** Continuous pattern, no hard edges
+- **Best for:** Seamless, natural distortion
+- **Mode value:** 1
+
+<Info>
+  This setting primarily affects behavior at very high refraction strengths. At moderate strengths, the difference is subtle or invisible.
+</Info>
+
+## Refraction vs. Contrast Pass
+
+Refraction is an **alternative** to the brightness/saturation/contrast adjustments, not an addition.
+
+### When Refraction is Disabled (Strength = 0)
+
+- Standard contrast pass is used
+- Brightness, saturation, and contrast settings apply
+- No distortion, only color/brightness adjustments
+
+### When Refraction is Enabled (Strength > 0)
+
+- Refraction shader replaces contrast pass
+- Brightness, saturation, and contrast settings are **ignored**
+- Distortion effect applied instead
+
+<Warning>
+  You cannot use both refraction and contrast parameters simultaneously. Enable refraction by setting strength above 0, or disable it to use the standard contrast adjustments.
+</Warning>
+
+## Technical Implementation
+
+Refraction is implemented using custom fragment shaders:
+
+- `refraction.frag` - Rectangular windows
+- `refraction_rounded.frag` - Windows with rounded corners
+
+The shaders:
+1. Calculate distance from each pixel to the nearest window edge
+2. Apply the normal power falloff curve
+3. Distort the background texture coordinates based on strength and mode
+4. Apply RGB fringing by offsetting color channels
+5. Sample the blurred background texture at the distorted coordinates
+6. Handle edge cases using the selected texture repeat mode
+
+### Performance Considerations
+
+Refraction is more GPU-intensive than the standard contrast pass because:
+
+- Multiple texture samples per pixel (for RGB fringing)
+- Complex distance field calculations
+- Non-linear coordinate transformations
+
+On modern GPUs, the performance impact is negligible. On older or integrated GPUs, you may experience:
+
+- Slightly reduced frame rates with many windows
+- Increased GPU temperature under load
+
+<Note>
+  If you experience performance issues, reduce refraction strength or edge size, or disable RGB fringing to reduce shader complexity.
+</Note>
+
+## Version History
+
+- **Version 1.x (Original Better Blur)** - Refraction included
+- **Version 2.0.0** - Refraction removed (breaking change) due to incompatibility with Plasma 6.5 blur architecture
+- **Version 2.2.0** - Refraction re-implemented for Plasma 6.6 blur system
+
+<Info>
+  The re-implemented refraction in 2.2.0 is built on the new Plasma 6.6 blur infrastructure and is not a direct port of the old implementation. Some visual characteristics may differ from the original.
+</Info>
+
+## Configuration Location
+
+Refraction parameters are configured in **System Settings → Workspace Behavior → Desktop Effects → Better Blur DX → Refraction tab**.
+
+All settings update in real-time as you adjust them.
+
+## Example Configurations
+
+### Subtle Glass Effect
+```
+Strength: 8
+Mode: Basic (Bulge)
+Edge Size: 15
+Falloff: 6
+Corner Radius: 10
+RGB Fringing: 2
+Edge Behavior: Clamp
+```
+Creates a gentle glass-like appearance suitable for daily use.
+
+### Dramatic Lens Effect
+```
+Strength: 18
+Mode: Concave (Lens)
+Edge Size: 25
+Falloff: 12
+Corner Radius: 12
+RGB Fringing: 8
+Edge Behavior: Flip
+```
+Produces a strong magnifying glass effect with visible color separation.
+
+### Extreme Artistic Effect
+```
+Strength: 28
+Mode: Concave (Lens)
+Edge Size: 30
+Falloff: 20
+Corner Radius: 50
+RGB Fringing: 20
+Edge Behavior: Flip
+```
+Creates a surreal, heavily distorted appearance for artistic screenshots.

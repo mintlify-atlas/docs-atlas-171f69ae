@@ -1,0 +1,277 @@
+---
+title: Performance Issues
+description: Solutions for cursor latency, stuttering, and performance problems
+---
+
+## Overview
+
+Better Blur DX can be resource-intensive, especially with many windows open or when using high blur strength values. This page explains common performance issues and how to resolve them.
+
+## High Cursor Latency on Wayland
+
+<Warning>
+On Wayland, high GPU load from Better Blur DX may cause increased cursor latency or stuttering, especially when moving the cursor rapidly.
+</Warning>
+
+### The Problem
+
+Better Blur DX performs real-time blur calculations as windows move and content changes. When you have many windows open or use high blur strength settings, this can create significant GPU load. On Wayland, this GPU load can affect cursor rendering, causing:
+
+- Noticeable delay between mouse movement and cursor position
+- Cursor stuttering or "skipping" across the screen
+- Reduced cursor smoothness during window animations
+- General system sluggishness during heavy blur usage
+
+### Primary Solution: KWIN_DRM_NO_AMS
+
+<Tip>
+The `KWIN_DRM_NO_AMS=1` environment variable is the recommended first step for resolving cursor latency issues.
+</Tip>
+
+Set the following environment variable to reduce cursor latency:
+
+```bash
+KWIN_DRM_NO_AMS=1
+```
+
+**What it does:** This disables KWin's Atomic Mode Setting (AMS) for DRM (Direct Rendering Manager), which can reduce the overhead of cursor updates when the GPU is under heavy load.
+
+#### How to Set This Variable
+
+**Method 1: System-wide (Recommended)**
+
+Create or edit `/etc/environment`:
+
+```bash
+sudo nano /etc/environment
+```
+
+Add this line:
+
+```bash
+KWIN_DRM_NO_AMS=1
+```
+
+Save and reboot your system.
+
+**Method 2: User session only**
+
+Add to `~/.config/plasma-workspace/env/kwin-env.sh`:
+
+```bash
+mkdir -p ~/.config/plasma-workspace/env
+echo 'export KWIN_DRM_NO_AMS=1' >> ~/.config/plasma-workspace/env/kwin-env.sh
+chmod +x ~/.config/plasma-workspace/env/kwin-env.sh
+```
+
+Log out and log back in for changes to take effect.
+
+**Method 3: Test temporarily**
+
+To test without making permanent changes:
+
+```bash
+KWIN_DRM_NO_AMS=1 kwin_wayland --replace &
+```
+
+<Note>
+The temporary method will only last until you log out or restart KWin. Use Method 1 or 2 for permanent configuration.
+</Note>
+
+## Software vs Hardware Cursor
+
+### Understanding the Difference
+
+**Hardware cursor:**
+- Rendered directly by the GPU hardware
+- Lowest possible latency
+- Independent of compositor performance
+- May have issues with some GPU drivers
+
+**Software cursor:**
+- Rendered by KWin compositor
+- Slightly higher latency
+- More consistent across different GPUs
+- Affected by compositor load
+
+### KWIN_FORCE_SW_CURSOR
+
+If setting `KWIN_DRM_NO_AMS=1` isn't enough to resolve cursor issues, you can experiment with forcing software or hardware cursor rendering:
+
+```bash
+KWIN_FORCE_SW_CURSOR=0  # Force hardware cursor
+KWIN_FORCE_SW_CURSOR=1  # Force software cursor
+```
+
+<Warning>
+The optimal setting depends on your GPU and driver. You may need to try both values to see which works better for your system.
+</Warning>
+
+#### When to Use Software Cursor (KWIN_FORCE_SW_CURSOR=1)
+
+**Recommended if:**
+- You're experiencing cursor flickering with hardware cursor
+- Your cursor disappears occasionally
+- You have an older GPU or driver
+- Hardware cursor has visual artifacts
+
+**Example configuration:**
+
+```bash
+# In /etc/environment or plasma-workspace/env/kwin-env.sh
+KWIN_DRM_NO_AMS=1
+KWIN_FORCE_SW_CURSOR=1
+```
+
+#### When to Use Hardware Cursor (KWIN_FORCE_SW_CURSOR=0)
+
+**Recommended if:**
+- You need the absolute lowest cursor latency
+- Your GPU and driver fully support hardware cursors
+- Software cursor feels sluggish even with KWIN_DRM_NO_AMS
+
+**Example configuration:**
+
+```bash
+# In /etc/environment or plasma-workspace/env/kwin-env.sh
+KWIN_DRM_NO_AMS=1
+KWIN_FORCE_SW_CURSOR=0
+```
+
+### Testing Which Setting Works Best
+
+1. **Test with hardware cursor:**
+   ```bash
+   KWIN_DRM_NO_AMS=1 KWIN_FORCE_SW_CURSOR=0 kwin_wayland --replace &
+   ```
+   Move your cursor rapidly and test responsiveness.
+
+2. **Test with software cursor:**
+   ```bash
+   KWIN_DRM_NO_AMS=1 KWIN_FORCE_SW_CURSOR=1 kwin_wayland --replace &
+   ```
+   Compare the cursor behavior.
+
+3. **Apply the setting that feels better** using one of the permanent methods described above.
+
+## Intel GPU Cursor Issues
+
+<Note>
+Intel GPUs use software cursor by default in KWin due to a known driver bug. This behavior is intentional and not specific to Better Blur DX.
+</Note>
+
+### The Intel Cursor Bug
+
+Intel GPUs are affected by [a driver bug](https://gitlab.freedesktop.org/drm/intel/-/issues/9571) that causes issues with hardware cursor rendering. To work around this, KWin automatically uses software cursor on Intel GPUs.
+
+**However**, this bug doesn't affect all Intel GPUs. Some Intel hardware works perfectly fine with hardware cursor.
+
+### Testing Hardware Cursor on Intel
+
+If you have an Intel GPU and want to test if hardware cursor works on your specific hardware:
+
+```bash
+KWIN_FORCE_SW_CURSOR=0 kwin_wayland --replace &
+```
+
+Watch for:
+- Cursor flickering or disappearing
+- Visual artifacts around the cursor
+- System instability or crashes
+
+If you don't experience any issues, you can permanently enable hardware cursor for potentially better performance:
+
+```bash
+echo 'export KWIN_FORCE_SW_CURSOR=0' >> ~/.config/plasma-workspace/env/kwin-env.sh
+```
+
+<Warning>
+If you experience any cursor issues after enabling hardware cursor on Intel, immediately revert to software cursor by removing the variable or setting it to 1.
+</Warning>
+
+## Complete Configuration Examples
+
+### Configuration 1: Maximum Compatibility (Recommended for most users)
+
+```bash
+# In /etc/environment
+KWIN_DRM_NO_AMS=1
+```
+
+This single setting resolves most cursor latency issues without forcing a specific cursor mode.
+
+### Configuration 2: Software Cursor + No AMS
+
+```bash
+# In /etc/environment
+KWIN_DRM_NO_AMS=1
+KWIN_FORCE_SW_CURSOR=1
+```
+
+Use this if you still experience cursor issues after setting only `KWIN_DRM_NO_AMS`.
+
+### Configuration 3: Hardware Cursor + No AMS (Advanced)
+
+```bash
+# In /etc/environment
+KWIN_DRM_NO_AMS=1
+KWIN_FORCE_SW_CURSOR=0
+```
+
+Use this for maximum cursor responsiveness, but only if your GPU fully supports hardware cursor.
+
+### Configuration 4: Intel GPU with Hardware Cursor Test
+
+```bash
+# In /etc/environment
+KWIN_DRM_NO_AMS=1
+KWIN_FORCE_SW_CURSOR=0  # Test if your Intel GPU supports this
+```
+
+Some Intel GPUs work fine with hardware cursor. Test this configuration and revert if you see issues.
+
+## Other Performance Tips
+
+### Reduce Blur Strength
+
+Lower blur strength values require less GPU processing:
+
+1. Open Better Blur DX settings in System Settings
+2. Reduce the blur strength slider
+3. Click Apply and test performance
+
+### Reduce Number of Blurred Windows
+
+The more windows you have open (especially transparent ones), the more GPU work is required:
+
+- Close unnecessary windows when doing GPU-intensive work
+- Use window rules to disable blur for specific applications
+- Consider using opaque themes for windows that don't need blur
+
+### Disable Force Blur
+
+If you're using the force blur feature extensively, it increases GPU load. Consider:
+
+- Only force-blurring windows where you really want the effect
+- Using transparent themes instead of force blur when possible
+
+### Monitor GPU Usage
+
+Use tools to monitor your GPU usage:
+
+```bash
+# For AMD GPUs
+radeontop
+
+# For NVIDIA GPUs
+nvidia-smi
+
+# For Intel GPUs
+intel_gpu_top
+```
+
+If you're consistently hitting 100% GPU usage, you may need to reduce blur settings or close windows.
+
+<Tip>
+If performance issues persist after trying all these solutions, consider reporting your specific hardware configuration and symptoms on the [GitHub issue tracker](https://github.com/xarblu/kwin-effects-better-blur-dx/issues).
+</Tip>

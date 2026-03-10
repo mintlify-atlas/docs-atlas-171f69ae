@@ -1,0 +1,312 @@
+---
+title: Building from Source
+description: Instructions for building Better Blur DX from source code
+---
+
+This guide covers building Better Blur DX manually from source. For package installation, see the [installation guide](/installation/overview).
+
+<Warning>
+  **Important:** The effect only works for the exact KWin version it was built for. After a system upgrade, you will need to rebuild the effect.
+</Warning>
+
+## Dependencies
+
+Before building, install the required development packages for your distribution.
+
+### Core Dependencies
+
+- CMake (minimum 3.16.0)
+- Extra CMake Modules (ECM)
+- C++ compiler with C++23 support (GCC or Clang)
+- Qt 6 (minimum 6.6.0) - Core, DBus, Gui, Network, OpenGL, Qml, Quick, Widgets
+- KDE Frameworks 6 (minimum 5.240.0)
+- KWin development packages
+- KDecoration3 development packages
+- libepoxy
+- Git (for cloning the repository)
+
+### Arch Linux
+
+<Tabs>
+  <Tab title="Wayland">
+    ```bash
+    sudo pacman -S base-devel git extra-cmake-modules qt6-tools kwin
+    ```
+  </Tab>
+  <Tab title="X11">
+    ```bash
+    sudo pacman -S base-devel git extra-cmake-modules qt6-tools kwin-x11
+    ```
+  </Tab>
+</Tabs>
+
+### Debian-based (KDE Neon, Kubuntu, Ubuntu)
+
+<Tabs>
+  <Tab title="Wayland">
+    ```bash
+    sudo apt install -y git cmake g++ extra-cmake-modules qt6-tools-dev kwin-dev \
+      libkf6configwidgets-dev gettext libkf6crash-dev libkf6globalaccel-dev \
+      libkf6kio-dev libkf6service-dev libkf6notifications-dev libkf6kcmutils-dev \
+      libkdecorations3-dev libxcb-composite0-dev libxcb-randr0-dev libxcb-shm0-dev
+    ```
+  </Tab>
+  <Tab title="X11">
+    ```bash
+    sudo apt install -y git cmake g++ extra-cmake-modules qt6-tools-dev kwin-x11-dev \
+      libkf6configwidgets-dev gettext libkf6crash-dev libkf6globalaccel-dev \
+      libkf6kio-dev libkf6service-dev libkf6notifications-dev libkf6kcmutils-dev \
+      libkdecorations3-dev libxcb-composite0-dev libxcb-randr0-dev libxcb-shm0-dev
+    ```
+  </Tab>
+</Tabs>
+
+### Fedora 41, 42
+
+<Tabs>
+  <Tab title="Wayland">
+    ```bash
+    sudo dnf -y install git cmake extra-cmake-modules gcc-g++ kf6-kwindowsystem-devel \
+      plasma-workspace-devel libplasma-devel qt6-qtbase-private-devel qt6-qtbase-devel \
+      cmake kwin-devel extra-cmake-modules kwin-devel kf6-knotifications-devel \
+      kf6-kio-devel kf6-kcrash-devel kf6-ki18n-devel kf6-kguiaddons-devel libepoxy-devel \
+      kf6-kglobalaccel-devel kf6-kcmutils-devel kf6-kconfigwidgets-devel \
+      kf6-kdeclarative-devel kdecoration-devel kf6-kglobalaccel kf6-kdeclarative \
+      libplasma kf6-kio qt6-qtbase kf6-kguiaddons kf6-ki18n wayland-devel libdrm-devel
+    ```
+  </Tab>
+  <Tab title="X11">
+    ```bash
+    sudo dnf -y install git cmake extra-cmake-modules gcc-g++ kf6-kwindowsystem-devel \
+      plasma-workspace-devel libplasma-devel qt6-qtbase-private-devel qt6-qtbase-devel \
+      cmake extra-cmake-modules kf6-knotifications-devel kf6-kio-devel kf6-kcrash-devel \
+      kf6-ki18n-devel kf6-kguiaddons-devel libepoxy-devel kf6-kglobalaccel-devel \
+      kf6-kcmutils-devel kf6-kconfigwidgets-devel kf6-kdeclarative-devel \
+      kdecoration-devel kf6-kglobalaccel kf6-kdeclarative libplasma kf6-kio qt6-qtbase \
+      kf6-kguiaddons kf6-ki18n wayland-devel libdrm-devel kwin-x11-devel
+    ```
+  </Tab>
+</Tabs>
+
+### openSUSE
+
+<Tabs>
+  <Tab title="Wayland">
+    ```bash
+    sudo zypper in -y git cmake-full gcc-c++ kf6-extra-cmake-modules kcoreaddons-devel \
+      kguiaddons-devel kconfigwidgets-devel kwindowsystem-devel ki18n-devel \
+      kiconthemes-devel kpackage-devel frameworkintegration-devel kcmutils-devel \
+      kirigami2-devel "cmake(KF6Config)" "cmake(KF6CoreAddons)" \
+      "cmake(KF6FrameworkIntegration)" "cmake(KF6GuiAddons)" "cmake(KF6I18n)" \
+      "cmake(KF6KCMUtils)" "cmake(KF6KirigamiPlatform)" "cmake(KF6WindowSystem)" \
+      "cmake(Qt6Core)" "cmake(Qt6DBus)" "cmake(Qt6Quick)" "cmake(Qt6Svg)" \
+      "cmake(Qt6Widgets)" "cmake(Qt6Xml)" "cmake(Qt6UiTools)" "cmake(KF6Crash)" \
+      "cmake(KF6GlobalAccel)" "cmake(KF6KIO)" "cmake(KF6Service)" \
+      "cmake(KF6Notifications)" libepoxy-devel kwin6-devel
+    ```
+  </Tab>
+  <Tab title="X11">
+    ```bash
+    sudo zypper in -y git cmake-full gcc-c++ kf6-extra-cmake-modules kcoreaddons-devel \
+      kguiaddons-devel kconfigwidgets-devel kwindowsystem-devel ki18n-devel \
+      kiconthemes-devel kpackage-devel frameworkintegration-devel kcmutils-devel \
+      kirigami2-devel "cmake(KF6Config)" "cmake(KF6CoreAddons)" \
+      "cmake(KF6FrameworkIntegration)" "cmake(KF6GuiAddons)" "cmake(KF6I18n)" \
+      "cmake(KF6KCMUtils)" "cmake(KF6KirigamiPlatform)" "cmake(KF6WindowSystem)" \
+      "cmake(Qt6Core)" "cmake(Qt6DBus)" "cmake(Qt6Quick)" "cmake(Qt6Svg)" \
+      "cmake(Qt6Widgets)" "cmake(Qt6Xml)" "cmake(Qt6UiTools)" "cmake(KF6Crash)" \
+      "cmake(KF6GlobalAccel)" "cmake(KF6KIO)" "cmake(KF6Service)" \
+      "cmake(KF6Notifications)" libepoxy-devel kwin6-x11-devel
+    ```
+  </Tab>
+</Tabs>
+
+## Build Steps
+
+### Standard Build (Wayland)
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/xarblu/kwin-effects-better-blur-dx
+cd kwin-effects-better-blur-dx
+```
+
+2. Create a build directory:
+
+```bash
+mkdir build
+cd build
+```
+
+3. Configure with CMake:
+
+```bash
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+```
+
+4. Build the effect:
+
+```bash
+make -j$(nproc)
+```
+
+5. Install the effect:
+
+```bash
+sudo make install
+```
+
+6. Restart KWin to load the effect:
+
+Log out and log back in, or restart the Plasma session.
+
+### Building for X11
+
+To build for KWin X11 instead of Wayland, add the `BETTERBLUR_X11` option to the CMake configuration:
+
+```bash
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DBETTERBLUR_X11=ON
+```
+
+Then proceed with the build and install steps as normal.
+
+<Note>
+  X11 support is deprecated and not extensively tested. The X11 version requires explicit opt-in and may not receive all features going forward.
+</Note>
+
+## CMake Options
+
+### BETTERBLUR_X11
+
+**Type:** Boolean (ON/OFF)  
+**Default:** OFF
+
+Builds the effect for KWin X11 instead of KWin Wayland.
+
+```bash
+cmake .. -DBETTERBLUR_X11=ON
+```
+
+When enabled:
+- Links against `KWinX11::kwin` instead of `KWin::kwin`
+- Installs to `${KDE_INSTALL_PLUGINDIR}/kwin-x11/effects/plugins`
+- Defines the `BETTERBLUR_X11` preprocessor macro
+
+When disabled (default):
+- Links against `KWin::kwin`
+- Installs to `${KDE_INSTALL_PLUGINDIR}/kwin/effects/plugins`
+
+### CMAKE_INSTALL_PREFIX
+
+**Type:** Path  
+**Default:** System-dependent (usually `/usr/local`)
+
+Specifies the installation prefix. Use `/usr` for system-wide installation:
+
+```bash
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+```
+
+### CMAKE_BUILD_TYPE
+
+**Type:** String (Release/Debug)  
+**Default:** Release
+
+Controls the build type. Release builds include optimizations and disable debug output:
+
+```bash
+cmake .. -DCMAKE_BUILD_TYPE=Debug
+```
+
+## Building for Different Distributions
+
+### Fedora Kinoite (Immutable System)
+
+On Fedora Kinoite and other immutable distributions, build inside a container and create an RPM package:
+
+```bash
+# Enter a toolbox container first
+toolbox enter
+
+# Clone and build
+git clone https://github.com/xarblu/kwin-effects-better-blur-dx
+cd kwin-effects-better-blur-dx
+mkdir build
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+make -j$(nproc)
+
+# Create RPM package
+cpack -V -G RPM
+
+# Exit container
+exit
+
+# Install the package
+sudo rpm-ostree install kwin-effects-better-blur-dx/build/kwin-better-blur-dx.rpm
+```
+
+After installation, reboot to load the new package.
+
+### NixOS
+
+For NixOS users, use the provided flake instead of building manually. See the [Installation guide](/installation/overview#nixos-flakes) for details.
+
+## Rebuilding
+
+<Warning>
+  **Critical:** Always remove the build directory when rebuilding the effect, especially after updating the source code or after a system upgrade.
+</Warning>
+
+When rebuilding:
+
+```bash
+cd kwin-effects-better-blur-dx
+rm -rf build
+mkdir build
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+make -j$(nproc)
+sudo make install
+```
+
+This ensures CMake reconfigures properly and detects the current KWin version. Failing to remove the build directory can result in the effect not loading or crashing KWin.
+
+## Post-Installation
+
+After installation:
+
+1. **Restart KWin**: Log out and log back in to load the updated effect. The initial installation doesn't require this, but updates do.
+
+2. **Enable the effect**: Open System Settings > Desktop Effects, disable any existing blur effects, and enable "Better Blur DX".
+
+3. **Configure settings**: Click the settings icon next to Better Blur DX to configure blur strength, corner radius, refraction, and other parameters.
+
+## Troubleshooting
+
+### Effect Doesn't Load
+
+- Ensure you've restarted KWin after installation
+- Check that other blur effects are disabled
+- Verify the effect was built for your current KWin version
+- Check KWin logs: `journalctl -b -g kwin`
+
+### Build Fails
+
+- Ensure all dependencies are installed
+- Remove the build directory and try again
+- Check that your Plasma version is 6.5 or 6.6
+- Verify you have a C++23-capable compiler
+
+### Version Mismatch After Upgrade
+
+- Remove the build directory completely
+- Rebuild the effect: `rm -rf build && mkdir build && cd build && cmake .. -DCMAKE_INSTALL_PREFIX=/usr && make -j$(nproc) && sudo make install`
+- Restart KWin
+
+## Next Steps
+
+- Learn about the [project structure](/development/project-structure)
+- Explore the [architecture overview](/development/overview)
+- Read the [configuration guide](/usage/configuration)

@@ -1,0 +1,145 @@
+---
+title: Contributing
+description: Learn how to contribute to Better Blur DX
+---
+
+We welcome contributions to Better Blur DX! Whether you're reporting bugs, suggesting features, or submitting code, your help is appreciated.
+
+## Repository
+
+Better Blur DX is hosted on GitHub at [xarblu/kwin-effects-better-blur-dx](https://github.com/xarblu/kwin-effects-better-blur-dx).
+
+## How to Contribute
+
+<Steps>
+  <Step title="Fork and clone the repository">
+    Fork the repository on GitHub and clone it to your local machine:
+    
+    ```bash
+    git clone https://github.com/YOUR-USERNAME/kwin-effects-better-blur-dx
+    cd kwin-effects-better-blur-dx
+    ```
+  </Step>
+
+  <Step title="Set up your development environment">
+    Install the required dependencies for your distribution. See the [Building](/development/building-from-source) guide for detailed dependency lists.
+    
+    For Arch Linux (Wayland):
+    ```bash
+    sudo pacman -S base-devel git extra-cmake-modules qt6-tools kwin
+    ```
+  </Step>
+
+  <Step title="Build the effect locally">
+    Create a build directory and compile the effect:
+    
+    ```bash
+    mkdir build
+    cd build
+    cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+    make -j$(nproc)
+    ```
+    
+    For X11 support, add `-DBETTERBLUR_X11=ON` to the cmake command.
+  </Step>
+
+  <Step title="Install and test your changes">
+    Install the effect locally:
+    
+    ```bash
+    sudo make install
+    ```
+    
+    <Note>
+      After installing an updated version of the effect, you need to restart KWin (e.g., via logout and login) to load the changes.
+    </Note>
+    
+    Test your changes thoroughly:
+    - Enable the Better Blur DX effect in System Settings > Desktop Effects
+    - Disable any conflicting blur effects
+    - Test with various window types and transparency settings
+  </Step>
+
+  <Step title="Make your changes">
+    Create a new branch for your changes:
+    
+    ```bash
+    git checkout -b feature/your-feature-name
+    ```
+    
+    Make your changes and commit them with clear, descriptive commit messages.
+  </Step>
+
+  <Step title="Submit a pull request">
+    Push your changes to your fork:
+    
+    ```bash
+    git push origin feature/your-feature-name
+    ```
+    
+    Open a pull request on GitHub with:
+    - A clear title describing the change
+    - A detailed description of what the PR does
+    - References to any related issues
+    - Screenshots or videos if relevant (especially for visual changes)
+  </Step>
+</Steps>
+
+## Reporting Issues
+
+If you encounter bugs or have feature requests, please [open an issue](https://github.com/xarblu/kwin-effects-better-blur-dx/issues) on GitHub.
+
+When reporting bugs, include:
+- Your Plasma version (check with `plasmashell --version`)
+- Your KWin version (check with `kwin_wayland --version` or `kwin_x11 --version`)
+- Whether you're using Wayland or X11
+- Steps to reproduce the issue
+- Expected vs. actual behavior
+- Relevant logs or error messages
+
+## Development Guidelines
+
+### Compatibility
+
+- The effect should work on the current stable version of Plasma
+- Currently supported versions: **Plasma 6.5** and **6.6**
+- X11 support is maintained but considered secondary to Wayland
+
+### Building for Different Targets
+
+**Wayland (default):**
+```bash
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+```
+
+**X11:**
+```bash
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DBETTERBLUR_X11=ON
+```
+
+<Warning>
+  The effect only works for the exact KWin version it was built for. After a system upgrade, you'll need to rebuild the effect.
+</Warning>
+
+### Rebuilding
+
+When rebuilding the effect, always remove the build directory first:
+
+```bash
+cd ..
+rm -rf build
+mkdir build
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+make -j$(nproc)
+sudo make install
+```
+
+## Credits
+
+Better Blur DX builds upon the work of several projects:
+
+- **[taj-ny/kwin-effects-forceblur](https://github.com/taj-ny/kwin-effects-forceblur)** - The original Better Blur effect that this project continues
+- **[a-parhom/LightlyShaders](https://github.com/a-parhom/LightlyShaders)** - CMakeLists.txt files and build system inspiration
+
+We're grateful to these projects and their contributors for laying the groundwork that made Better Blur DX possible.

@@ -1,0 +1,197 @@
+---
+title: Development Overview
+description: Overview of Better Blur DX architecture and technologies
+---
+
+Better Blur DX is a KWin effect plugin for Plasma 6 that enhances the blur functionality with additional features like force blur, adjustable parameters, corner radius, and refraction effects.
+
+## Project Structure
+
+The project is organized into several key directories:
+
+```
+kwin-effects-better-blur-dx/
+├── src/                  # Main source code
+│   ├── kcm/             # KConfig Module for settings UI
+│   └── shaders/         # OpenGL shader files
+├── nix/                 # NixOS packaging
+├── tools/               # Build and development tools
+└── docs/                # Documentation
+```
+
+## Technologies Used
+
+### Core Technologies
+
+- **C++23**: Modern C++ standard for the codebase
+- **Qt 6**: GUI framework (minimum version 6.6.0)
+  - Qt6Core, Qt6DBus, Qt6Gui, Qt6OpenGL, Qt6Quick, Qt6Widgets
+- **KDE Frameworks 6** (KF6): KDE libraries (minimum version 5.240.0)
+  - KColorScheme, KConfig, KConfigWidgets, KCoreAddons
+  - KI18n, KCMUtils, KWidgetsAddons, KWindowSystem
+- **KWin**: Plasma window manager development libraries
+- **KDecoration3**: Window decoration framework
+
+### Graphics
+
+- **OpenGL**: GPU-accelerated rendering via libepoxy
+- **GLSL**: OpenGL Shading Language for shader programs
+
+### Build System
+
+- **CMake**: Build system (minimum version 3.16.0)
+- **Extra CMake Modules** (ECM): KDE CMake extensions
+- **CPack**: Package generation for distributions
+
+## Key Components
+
+Better Blur DX is built around several core components that work together to provide advanced blur effects:
+
+### BlurEffect (blur.h, blur.cpp)
+
+The main effect class that inherits from `KWin::Effect`. This is the entry point for the blur effect and coordinates all other components.
+
+**Key responsibilities:**
+- Screen and window pre-paint operations
+- Window drawing with blur applied
+- Managing blur regions for windows
+- Dual Kawase blur algorithm implementation
+- Downsample and upsample passes
+- Color matrix transformations (brightness, contrast, saturation)
+- Integration with KWin effect system
+
+**Data structures:**
+- `BlurRenderData`: Temporary render targets and framebuffers for the blur algorithm
+- `BlurEffectData`: Per-window blur data including regions, render data, and color matrices
+
+See the BlurEffect class at `src/blur.h:75`.
+
+### WindowManager (window_manager.hpp, window_manager.cpp)
+
+Manages all windows that the blur effect applies to, including window classification and state tracking.
+
+**Key responsibilities:**
+- Window lifecycle management (add/delete)
+- Window class matching (whitelist/blacklist with regex support)
+- Maximized state detection and tracking
+- Dock window handling
+- Blur region calculation and updates
+- Border radius management
+- Transform state tracking (for animations)
+
+**Configuration:**
+- Window class filtering (fixed strings and regex patterns)
+- Decoration, dock, and menu blur toggles
+- User-configured border radius
+
+See the WindowManager class at `src/window_manager.hpp:32`.
+
+### RefractionPass (refraction_pass.hpp, refraction_pass.cpp)
+
+Implements the refraction effect that simulates light bending at window edges.
+
+**Key features:**
+- Rectangular and rounded corner variants
+- Configurable edge size and corner radius
+- RGB fringing simulation
+- Normal power adjustment
+- Multiple texture repeat modes
+- Adjustable refraction strength
+
+**Shader uniforms:**
+- MVP matrix and color matrix
+- Offset and halfpixel parameters
+- Refraction-specific parameters (strength, edge size, corner radius, etc.)
+
+See the RefractionPass class at `src/refraction_pass.hpp:14`.
+
+### RoundedCornersPass (rounded_corners_pass.hpp, rounded_corners_pass.cpp)
+
+Applies rounded corners to blurred windows by masking with the un-blurred background.
+
+**Key features:**
+- Shader-based corner rounding
+- Per-corner radius support
+- Integration with blur render pipeline
+- Vertex buffer optimization
+
+**Process:**
+1. Uses the first framebuffer containing raw un-blurred pixels
+2. Applies rounded corner mask based on corner radius
+3. Renders with proper viewport and window transformations
+
+See the RoundedCornersPass class at `src/rounded_corners_pass.hpp:23`.
+
+### Window (window.hpp, window.cpp)
+
+Represents an individual managed window with blur state and properties.
+
+**Tracked properties:**
+- Blur regions (content and frame)
+- Maximized state
+- Transform state (for animations)
+- Effective border radius
+- Blur opacity
+
+### Settings (settings.h, settings.cpp, blur.kcfg)
+
+Configuration management using KConfig system.
+
+**Configuration file:** `src/blur.kcfg` defines all user-configurable options including:
+- Blur strength and iterations
+- Brightness, contrast, saturation adjustments
+- Corner radius
+- Refraction parameters
+- Window class filters
+- Noise texture settings
+
+## Shader Pipeline
+
+The effect uses multiple GLSL shader programs located in `src/shaders/`:
+
+### Blur Shaders
+- `downsample.frag` / `downsample_core.frag` - Downsampling pass
+- `upsample.frag` / `upsample_core.frag` - Upsampling pass
+- `noise.frag` / `noise_core.frag` - Noise texture generation
+
+### Onscreen Rendering
+- `onscreen.frag` / `onscreen_core.frag` - Standard rectangular blur rendering
+- `onscreen_rounded.frag` / `onscreen_rounded.vert` - Rounded corner blur rendering
+- `onscreen_rounded_core.frag` / `onscreen_rounded_core.vert` - Core profile version
+
+### Refraction Effects
+- `refraction.frag` / `refraction_core.frag` - Rectangular refraction
+- `refraction_rounded.frag` / `refraction_rounded_core.frag` - Rounded refraction
+
+### Rounded Corners
+- `rounded_corners.frag` / `rounded_corners.vert` - Rounded corner mask
+- `rounded_corners_core.frag` / `rounded_corners_core.vert` - Core profile version
+
+Each shader has both a standard and "core" version for different OpenGL profiles.
+
+## KCM Module
+
+The KConfig Module (`src/kcm/`) provides the settings UI in System Settings:
+
+- `blur_config.cpp` / `blur_config.h` - Configuration dialog implementation
+- `blur_config.ui` - Qt Designer UI file
+- `about.html` - About page content
+
+The KCM allows users to configure all blur effect parameters through a graphical interface.
+
+## Platform Support
+
+### Wayland (Primary)
+Full support for KWin Wayland with all features enabled by default.
+
+### X11 (Limited)
+X11 support is available but considered deprecated and requires explicit opt-in during build with `-DBETTERBLUR_X11=ON`. The X11 and Wayland versions are diverging as KWin X11 receives fewer API updates.
+
+## Version Compatibility
+
+The effect is designed to work with **Plasma 6.5 and 6.6**. It includes compatibility shims for API differences:
+
+- `kwin_version.hpp` - Version detection macros
+- `kwin_compat_6_5.hpp` - Compatibility layer for Plasma 6.5
+
+The effect must be rebuilt for each KWin version due to binary compatibility requirements.

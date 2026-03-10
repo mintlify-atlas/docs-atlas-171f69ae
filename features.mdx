@@ -1,0 +1,191 @@
+---
+title: Features Overview
+description: Comprehensive list of features in Better Blur DX including force blur, adjustable parameters, corner radius, and refraction
+---
+
+# Features
+
+Better Blur DX extends KWin's blur capabilities with powerful customization options and fixes for long-standing issues. Here's everything the effect offers.
+
+## Core Features
+
+<CardGroup cols={2}>
+  <Card title="Force Blur" icon="eye" href="/features/force-blur">
+    Apply blur to any window regardless of whether the application supports transparency. Use window class matching with regex support.
+  </Card>
+  
+  <Card title="Adjustable Contrast Pass" icon="adjust" href="/features/contrast-parameters">
+    Fine-tune brightness, contrast, and saturation of blurred backgrounds. Force your settings even when windows provide their own values.
+  </Card>
+  
+  <Card title="Corner Radius" icon="border-radius" href="/features/corner-radius">
+    Round the corners of blur regions to match modern window designs and eliminate the "korners" bug where square blur bleeds out.
+  </Card>
+  
+  <Card title="Refraction" icon="droplet" href="/features/refraction">
+    Use refraction effects as an alternative to the standard contrast pass for unique visual styles (re-implemented in v2.2.0).
+  </Card>
+</CardGroup>
+
+## Blur Customization
+
+### Blur Strength
+
+Control how "sharp" or "soft" your blurred backgrounds appear. This works identically to the default KWin blur setting but integrates with Better Blur DX's advanced features.
+
+### Noise Strength
+
+Adjust the intensity of noise applied to blurred backgrounds. Noise helps hide banding artifacts that can appear in smooth gradients, especially on lower-end displays.
+
+### Contrast Pass Parameters
+
+Better Blur DX gives you full control over the contrast pass applied to blurred regions:
+
+- **Brightness** - Make blurred backgrounds lighter or darker
+- **Saturation** - Increase or decrease color intensity
+- **Contrast** - Adjust the difference between light and dark areas
+
+You can configure these parameters using either sliders for visual feedback or spinboxes for precise numerical control.
+
+<Info>
+  By default, Better Blur DX respects contrast parameters provided by windows themselves (like Plasma panels). Enable "Force Contrast Parameters" to override window-provided values with your own settings.
+</Info>
+
+## Force Blur Options
+
+### Window Class Matching
+
+Specify which windows should receive forced blur using window classes. Better Blur DX supports:
+
+- **Exact matching** - Match specific window classes
+- **Regular expressions** (added in v2.1.0) - Use regex patterns for flexible matching
+- **Invert matching** - Blur all windows *except* those matching your list
+
+You can obtain window classes using:
+- `qdbus org.kde.KWin /KWin org.kde.KWin.queryWindowInfo` (click the target window)
+- Right-click titlebar → More Options → Configure Special Window/Application Settings
+
+### Decoration Blurring
+
+Enable "Blur window decorations as well" to apply blur to window borders and titlebars. This is essential for decorations that don't natively support blur and will override blur regions specified by the decoration.
+
+### Menu and Dock Blurring
+
+By default, Better Blur DX filters out menus and docks from blur processing. Enable these options to allow blur on:
+
+- Application menus and context menus
+- Desktop docks and panels
+
+<Note>
+  Enabling these options only *allows* menus/docks to be blurred. You still need to add them to your force blur window classes or enable "Blur all except matching".
+</Note>
+
+## Bug Fixes
+
+Better Blur DX includes fixes for several KWin blur bugs that haven't been patched upstream:
+
+### Blur Disappearing During Animations
+
+The effect includes improved "blur while transformed" behavior that maintains consistent blur during window transformations. As of v2.1.0, blur is explicitly disabled during move/resize, allowed to transform cleanly, then reapplied with a smooth fade transition.
+
+### Transparent Color Schemes
+
+Fixes compatibility issues between transparent color schemes (like [Alpha](https://store.kde.org/p/1972214)) and the Breeze application style.
+
+### Opacity Rule Blurring
+
+Resolves issues where windows with opacity less than 1.0 (set via KWin rules) wouldn't blur correctly.
+
+### Contrast Pass Artifacts
+
+Eliminates visual artifacts that appeared around screen edges in the contrast pass.
+
+### False Region Overwriting
+
+Fixed in v2.2.0 - Prevents empty force-blur regions from overwriting legitimate blur regions, which caused decorations to lose their blur.
+
+### X11 Property Parsing on Wayland
+
+Fixed in v2.1.0 - The Wayland build now correctly respects blur requests from X11 clients running under XWayland.
+
+## Compatibility
+
+### Supported Plasma Versions
+
+<Info>
+  Better Blur DX is designed to work with the **current stable version of Plasma**. Older versions receive minimal testing.
+</Info>
+
+**Currently supported:**
+- Plasma 6.5
+- Plasma 6.6
+
+### Display Server Support
+
+- **Wayland** - Fully supported, actively tested
+- **X11** - Deprecated, minimal testing, must be explicitly enabled at build time
+
+### Effect Compatibility
+
+Better Blur DX has known incompatibilities with certain KWin effects:
+
+<Warning>
+  **Incompatible Effects:**
+  
+  - **Default KWin Blur** - Must be disabled to avoid double-blurring
+  - **Wobbly Windows** - Improved compatibility in v2.1.0, but blur is disabled during wobble animations to prevent artifacts
+</Warning>
+
+## Performance Characteristics
+
+Better Blur DX can be resource-intensive, particularly with:
+
+- Multiple open windows
+- Large blur strength values
+- High-resolution displays
+- Lower-end GPUs
+
+On Wayland, heavy GPU load may cause cursor latency or stuttering. Performance optimization options are available - see the troubleshooting documentation.
+
+<Note>
+  Intel GPUs use software cursor by default due to a known kernel driver bug. This affects cursor performance but is a workaround for visual corruption issues.
+</Note>
+
+## Notable Changes from Better Blur
+
+If you're migrating from the original Better Blur (by taj-ny), be aware of these breaking changes introduced in Better Blur DX 2.0.0:
+
+- **Config group renamed** - You'll need to reconfigure your settings
+- **Static blur removed** - Maintenance complexity outweighed benefits
+- **Refraction initially removed** - Re-implemented in v2.2.0 as an alternative to the contrast pass
+- **Auto-detect opacity behavior** - No longer needs manual configuration
+
+## What's Missing?
+
+Compared to the original Better Blur, Better Blur DX currently lacks:
+
+- **Static Blur** - Removed in v2.0.0, not planned for re-implementation
+
+Static blur required duplicating the entire effect pipeline and proved difficult to maintain with the Plasma 6.5+ blur architecture.
+
+## Next Steps
+
+Explore detailed documentation for specific features:
+
+<CardGroup cols={2}>
+  <Card title="Force Blur Guide" icon="eye" href="/features/force-blur">
+    Complete guide to force blurring windows with class matching
+  </Card>
+  
+  <Card title="Contrast Pass Configuration" icon="adjust" href="/features/contrast-parameters">
+    Master brightness, saturation, and contrast adjustments
+  </Card>
+  
+  <Card title="Corner Radius Setup" icon="border-radius" href="/features/corner-radius">
+    Fix the korners bug and match modern window designs
+  </Card>
+  
+  <Card title="Refraction Effects" icon="droplet" href="/features/refraction">
+    Learn about refraction as an alternative visual style
+  </Card>
+</CardGroup>

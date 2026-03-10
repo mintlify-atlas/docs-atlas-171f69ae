@@ -1,0 +1,114 @@
+---
+title: Introduction to Better Blur DX
+description: A powerful KWin effect plugin that enhances window blur with force blur, adjustable parameters, corner radius, and refraction for Plasma 6
+---
+
+# Welcome to Better Blur DX
+
+Better Blur DX is a KWin effect plugin for Plasma 6 that significantly enhances the default window blur effect with advanced customization options and critical bug fixes.
+
+## What is Better Blur DX?
+
+Better Blur DX is a loose continuation of [Better Blur](https://github.com/taj-ny/kwin-effects-forceblur/), which itself is a fork of the standard KWin blur effect. It brings professional-grade blur control to your KDE Plasma desktop, allowing you to fine-tune every aspect of window transparency and blur effects.
+
+The project maintains compatibility with the latest Plasma releases while adding features that power users and customization enthusiasts have been requesting.
+
+## Why Better Blur DX?
+
+### Enhanced Control
+
+Unlike the default KWin blur, Better Blur DX gives you precise control over:
+
+- **Force blur** on any window, regardless of whether the application supports transparency
+- **Adjustable blur parameters** including brightness, contrast, and saturation
+- **Corner radius** to match modern rounded window designs and fix the infamous "korners" bug
+- **Refraction effects** as an alternative to the default contrast pass (added in v2.2.0)
+
+### Critical Bug Fixes
+
+Better Blur DX includes fixes for persistent blur-related Plasma bugs:
+
+- Blur disappearing during animations
+- Transparent color schemes not working properly with the Breeze application style
+- Windows with opacity rules not blurring correctly
+- Artifacts around screen edges in the contrast pass
+
+### Active Development
+
+The plugin stays current with Plasma releases and continuously improves based on user feedback and the evolving KWin API.
+
+<Note>
+  Better Blur DX is designed to replace the default KWin blur effect. You should disable the standard blur effect before enabling Better Blur DX to avoid conflicts.
+</Note>
+
+## Supported Versions
+
+Better Blur DX is actively tested and supported on:
+
+- **Plasma 6.5**
+- **Plasma 6.6**
+
+Older Plasma 6 versions may work but are not regularly tested.
+
+<Warning>
+  The effect must be rebuilt after system upgrades. Better Blur DX only works with the exact KWin version it was compiled against. After rebuilding, restart KWin (logout and login) to load the updated version.
+</Warning>
+
+## X11 Support Status
+
+While Better Blur DX can be built for both Wayland and X11, **X11 support is considered deprecated** and receives minimal testing. The X11 version must be explicitly enabled during compilation with the `-DBETTERBLUR_X11=ON` CMake option.
+
+As KWin X11 sees fewer API updates with each release, maintaining feature parity between Wayland and X11 versions becomes increasingly challenging.
+
+<Info>
+  Primary development and testing focuses on Wayland. If you're still using X11, consider whether the X11 build meets your needs or if it's time to transition to Wayland.
+</Info>
+
+## History and Evolution
+
+Better Blur DX emerged from a lineage of blur enhancement projects:
+
+1. **Original KWin Blur** - The baseline blur effect shipped with KDE Plasma
+2. **Better Blur** (by taj-ny) - First major enhancement adding force blur and static blur
+3. **Better Blur DX** (by xarblu) - Current continuation, ported to Plasma 6.5+ blur engine
+
+The "DX" rebrand coincided with version 2.0.0, which introduced breaking changes including:
+- Complete port to the Plasma 6.5 blur architecture
+- Removal of static blur (maintenance complexity vs. benefit)
+- Temporary removal of refraction (later re-implemented in v2.2.0)
+- Improved contrast pass configuration with both sliders and spinboxes
+
+## Getting Started
+
+Ready to enhance your desktop experience? Here's what to do next:
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation/overview">
+    Install Better Blur DX via package managers or build from source
+  </Card>
+  
+  <Card title="Configuration" icon="sliders" href="/usage/configuration">
+    Configure blur strength, contrast, corner radius, and force blur options
+  </Card>
+  
+  <Card title="Features" icon="sparkles" href="/features">
+    Explore all the powerful features Better Blur DX offers
+  </Card>
+  
+  <Card title="Troubleshooting" icon="wrench" href="/troubleshooting/known-issues">
+    Resolve common issues and optimize performance
+  </Card>
+</CardGroup>
+
+## Performance Considerations
+
+Better Blur DX can be resource-intensive, especially with many open windows. On Wayland systems, high GPU load may cause cursor latency or stuttering. If you experience these issues, check the troubleshooting guide for performance optimization tips.
+
+## Credits
+
+Better Blur DX builds upon the work of many contributors:
+
+- **xarblu** - Current maintainer and primary developer
+- **taj-ny** - Creator of the original Better Blur
+- **a-parhom** - CMakeLists.txt files from LightlyShaders
+- KDE Plasma team - Original blur effect foundation

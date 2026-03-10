@@ -1,0 +1,134 @@
+---
+title: Compatibility with Other Effects
+description: How Better Blur DX interacts with other KWin effects
+---
+
+## Overview
+
+Better Blur DX replaces the default KWin blur effect and has some compatibility considerations with other effects. This page explains which effects conflict with Better Blur DX and how to resolve these issues.
+
+## Incompatibility with Default KWin Blur
+
+<Warning>
+Better Blur DX conflicts with the default KWin blur effect. You must disable the default blur effect before enabling Better Blur DX.
+</Warning>
+
+Since Better Blur DX effectively replaces the built-in KWin blur, you should never run both effects simultaneously. Using both effects at the same time will cause:
+
+- **Double blurring**: Some windows may be blurred twice, creating an overly blurred appearance that "looks off"
+- **Inconsistent behavior**: Different windows may use different blur implementations, leading to visual inconsistencies
+- **Performance issues**: Running two blur effects simultaneously doubles the GPU load unnecessarily
+
+### How to Properly Switch to Better Blur DX
+
+1. Open **System Settings**
+2. Navigate to **Workspace** → **Desktop Effects**
+3. Search for "blur" in the search box
+4. **Disable** the "Blur" effect (the default KWin blur)
+5. **Enable** the "Better Blur DX" effect
+6. Click **Apply**
+
+<Tip>
+If you see multiple blur effects enabled, make sure only Better Blur DX is active. Disable all other blur-related effects.
+</Tip>
+
+## Wobbly Windows Effect
+
+<Warning>
+Better Blur DX has known compatibility issues with the "Wobbly Windows" effect. Visual artifacts are expected when both effects are enabled.
+</Warning>
+
+### The Problem
+
+Better Blur DX blurs a rectangular region behind each window. When the Wobbly Windows effect is active, it deforms the window geometry, but the blur region remains rectangular. This creates two possible issues:
+
+1. **Blur bleeding**: The rectangular blur region bleeds outside the deformed window shape, creating visible blur where it shouldn't be
+2. **Blur skipping**: KWin may skip blur rendering entirely while the wobble animation is active, causing the blur to disappear during the animation
+
+### Visual Examples
+
+**Normal state (no wobble):**
+```
+┌──────────────┐
+│   Window     │ ← Blur matches window perfectly
+│   Content    │
+└──────────────┘
+```
+
+**During wobble animation:**
+```
+┌──────────────┐
+│  ╱Window╲    │ ← Window is deformed
+│ │ Content│   │   but blur is still rectangular
+└─┴────────┴───┘   causing visual artifacts
+```
+
+### Solutions
+
+**Option 1: Disable Wobbly Windows (Recommended)**
+
+If you prefer consistent blur appearance, disable the Wobbly Windows effect:
+
+1. Open **System Settings** → **Workspace** → **Desktop Effects**
+2. Find **Wobbly Windows** and disable it
+3. Click **Apply**
+
+**Option 2: Accept the Visual Artifacts**
+
+If you prefer to keep the Wobbly Windows effect, understand that:
+- Blur may temporarily disappear during window movements
+- Visual artifacts around window edges are normal and expected
+- This is a limitation of how the effects interact, not a bug
+
+<Note>
+This is a fundamental limitation of how the two effects work. There are no plans to fix this issue, as it would require significant architectural changes to how blur regions are calculated.
+</Note>
+
+## Other Effect Conflicts
+
+Better Blur DX should work correctly with most other KWin effects, including:
+
+- **Desktop Cube**: Works without issues
+- **Magic Lamp**: Window animations work correctly with blur
+- **Fade**: Fade effects work properly with blurred windows
+- **Scale**: Overview and window scaling effects are compatible
+- **Glide**: Window minimize/maximize animations work correctly
+
+### Testing New Effects
+
+If you're enabling a new effect and want to check compatibility with Better Blur DX:
+
+1. Enable the new effect
+2. Test window operations that trigger the effect
+3. Watch for:
+   - Blur disappearing unexpectedly
+   - Visual artifacts or glitches
+   - Performance degradation
+
+If you notice issues, you can report them on the [GitHub issue tracker](https://github.com/xarblu/kwin-effects-better-blur-dx/issues).
+
+## Third-Party Effects
+
+<Warning>
+Third-party effects that modify window geometry or rendering may conflict with Better Blur DX in unexpected ways.
+</Warning>
+
+If you're using third-party KWin effects (effects not included with Plasma by default), be aware that:
+
+- These effects may not have been tested with Better Blur DX
+- Effects that modify window shapes or rendering pipelines are most likely to cause issues
+- Effects that only modify window behavior (not appearance) should work fine
+
+If you encounter issues with a third-party effect:
+
+1. Disable the third-party effect temporarily to confirm it's the cause
+2. Check if the third-party effect has any configuration options related to blur or window compositing
+3. Report the issue to both the Better Blur DX and third-party effect developers
+
+## Force Blur Feature
+
+One of Better Blur DX's key features is the ability to **force blur** on specific windows, even if they're not transparent. This feature generally works well with other effects, but note:
+
+- Forced blur may interact unexpectedly with effects that modify window opacity
+- If you're seeing double blur on force-blurred windows, check that no other blur effects are enabled
+- Window rules that modify opacity work correctly with force blur

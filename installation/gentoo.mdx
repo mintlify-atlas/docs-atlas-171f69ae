@@ -1,0 +1,156 @@
+---
+title: Gentoo Installation
+description: Install Better Blur DX on Gentoo Linux using xarblu-overlay
+---
+
+Better Blur DX is available on Gentoo through the xarblu-overlay repository, maintained by the project author [xarblu](https://github.com/xarblu).
+
+## Installation
+
+<Steps>
+  <Step title="Enable xarblu-overlay">
+    Enable the overlay repository using eselect:
+    
+    ```bash
+    eselect repository enable xarblu-overlay
+    ```
+    
+    This adds the repository to your system's overlay configuration.
+  </Step>
+  
+  <Step title="Sync the Overlay">
+    Synchronize the overlay to fetch the latest ebuilds:
+    
+    ```bash
+    emerge --sync xarblu-overlay
+    ```
+    
+    You can also sync all repositories:
+    
+    ```bash
+    emerge --sync
+    ```
+  </Step>
+  
+  <Step title="Install Better Blur DX">
+    Install the package using emerge:
+    
+    ```bash
+    emerge --ask kde-misc/kwin-effects-better-blur-dx
+    ```
+    
+    This will install the Wayland version by default.
+  </Step>
+  
+  <Step title="Enable the Effect">
+    After installation:
+    
+    1. Open **System Settings** > **Desktop Effects**
+    2. Disable any existing blur effects
+    3. Enable **Better Blur DX**
+  </Step>
+</Steps>
+
+## USE Flags
+
+The ebuild supports USE flags for customizing the build:
+
+<CodeGroup>
+```bash X11 Support
+# Enable X11 support (Wayland is default)
+echo "kde-misc/kwin-effects-better-blur-dx X" >> /etc/portage/package.use/better-blur-dx
+emerge --ask kde-misc/kwin-effects-better-blur-dx
+```
+
+```bash Live Version
+# Install live version (tracks main branch)
+echo "=kde-misc/kwin-effects-better-blur-dx-9999 **" >> /etc/portage/package.accept_keywords/better-blur-dx
+emerge --ask =kde-misc/kwin-effects-better-blur-dx-9999
+```
+</CodeGroup>
+
+<Note>
+  The live version (9999) requires the `**` keyword and will track the latest development changes from the `main` branch.
+</Note>
+
+## System Upgrades
+
+<Warning>
+  **Important**: After upgrading Plasma or KWin, you must rebuild the package.
+  
+  The effect is compiled against a specific KWin version. After system upgrades that update KWin:
+  
+  ```bash
+  emerge --ask kde-misc/kwin-effects-better-blur-dx
+  ```
+  
+  Then restart KWin by logging out and back in.
+</Warning>
+
+## Automatic Rebuilds
+
+To automatically rebuild the effect when KWin is updated, you can use Portage's preserved-rebuild feature:
+
+```bash
+# After world update, rebuild preserved libraries
+emerge @preserved-rebuild
+```
+
+Alternatively, add the package to your world set to ensure it's always considered during updates:
+
+```bash
+emerge --noreplace kde-misc/kwin-effects-better-blur-dx
+```
+
+## Wayland vs X11
+
+<Tabs>
+  <Tab title="Wayland (Default)">
+    The default build is for Wayland, which is the recommended and actively tested display server:
+    
+    ```bash
+    emerge --ask kde-misc/kwin-effects-better-blur-dx
+    ```
+  </Tab>
+  
+  <Tab title="X11">
+    To build for X11, enable the X USE flag:
+    
+    ```bash
+    echo "kde-misc/kwin-effects-better-blur-dx X" >> /etc/portage/package.use/better-blur-dx
+    emerge --ask kde-misc/kwin-effects-better-blur-dx
+    ```
+    
+    <Warning>
+      X11 support is deprecated and not actively tested. Use Wayland for the best experience.
+    </Warning>
+  </Tab>
+</Tabs>
+
+## Troubleshooting
+
+If you encounter issues:
+
+1. **Effect not loading**: Check if the plugin is installed:
+   ```bash
+   ls /usr/lib64/qt6/plugins/kwin/effects/plugins/libbetterblur.so
+   ```
+
+2. **Build failures**: Ensure you have the latest KWin development packages:
+   ```bash
+   emerge --ask --oneshot kde-plasma/kwin
+   ```
+
+3. **Check dependencies**: Verify all dependencies are satisfied:
+   ```bash
+   emerge --pretend --verbose kde-misc/kwin-effects-better-blur-dx
+   ```
+
+4. **View logs**: Check emerge logs for build errors:
+   ```bash
+   cat /var/tmp/portage/kde-misc/kwin-effects-better-blur-dx-*/temp/build.log
+   ```
+
+## Next Steps
+
+Learn how to configure Better Blur DX in the [Configuration](/usage/configuration) section.

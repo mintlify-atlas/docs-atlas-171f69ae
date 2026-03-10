@@ -1,0 +1,377 @@
+---
+title: Manual Build
+description: Build Better Blur DX from source on any Linux distribution
+---
+
+This guide covers building Better Blur DX manually from source. Use this method if your distribution doesn't have pre-built packages or if you want to customize the build.
+
+## Prerequisites
+
+Better Blur DX requires:
+
+- CMake
+- Extra CMake Modules
+- Plasma 6 (versions 6.5 or 6.6)
+- Qt 6
+- KDE Frameworks 6
+- KWin development packages
+- C++ compiler (GCC or Clang)
+
+## Distribution-Specific Dependencies
+
+See the installation pages for your distribution for exact dependency commands:
+
+- [Arch Linux](/installation/arch-linux)
+- [Debian-based (KDE Neon, Kubuntu, Ubuntu)](/installation/debian)
+- [Fedora](/installation/fedora)
+- [openSUSE](/installation/opensuse)
+
+Or continue with the generic build instructions below.
+
+## Building
+
+<Steps>
+  <Step title="Clone the Repository">
+    Clone the Better Blur DX source code:
+    
+    ```bash
+    git clone https://github.com/xarblu/kwin-effects-better-blur-dx
+    cd kwin-effects-better-blur-dx
+    ```
+  </Step>
+  
+  <Step title="Create Build Directory">
+    Create a separate build directory:
+    
+    ```bash
+    mkdir build
+    cd build
+    ```
+  </Step>
+  
+  <Step title="Configure with CMake">
+    Configure the build:
+    
+    <Tabs>
+      <Tab title="Wayland (Default)">
+        ```bash
+        cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+        ```
+        
+        This builds for the standard Wayland KWin.
+      </Tab>
+      
+      <Tab title="X11">
+        ```bash
+        cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DBETTERBLUR_X11=ON
+        ```
+        
+        <Warning>
+          The `-DBETTERBLUR_X11=ON` flag is **required** to build for X11. X11 support is deprecated and not actively tested.
+        </Warning>
+      </Tab>
+    </Tabs>
+    
+    <Note>
+      The install prefix should match your system's Qt plugin path. Use `/usr` for most distributions, or `/usr/local` for custom installations.
+    </Note>
+  </Step>
+  
+  <Step title="Compile">
+    Build the effect using all available CPU cores:
+    
+    ```bash
+    make -j$(nproc)
+    ```
+    
+    This will compile the plugin and configuration modules.
+  </Step>
+  
+  <Step title="Install">
+    Install the effect to your system:
+    
+    ```bash
+    sudo make install
+    ```
+    
+    This installs the plugin files to the Qt plugins directory.
+  </Step>
+  
+  <Step title="Enable the Effect">
+    After installation:
+    
+    1. Open **System Settings** > **Desktop Effects**
+    2. Disable any existing blur effects
+    3. Enable **Better Blur DX**
+  </Step>
+</Steps>
+
+## Build Options
+
+Customize the build with these CMake options:
+
+<CodeGroup>
+```bash X11 Support
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DBETTERBLUR_X11=ON
+```
+
+```bash Debug Build
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Debug
+```
+
+```bash Release with Debug Info
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo
+```
+
+```bash Custom Install Prefix
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local
+```
+
+```bash Verbose Build
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=ON
+```
+</CodeGroup>
+
+## System Upgrades
+
+<Warning>
+  **Critical**: After upgrading Plasma or KWin, you **must** rebuild the effect.
+  
+  The effect is compiled against a specific KWin version and will stop working if KWin is updated. After system upgrades:
+  
+  ```bash
+  cd kwin-effects-better-blur-dx
+  rm -rf build  # Important: Remove old build directory
+  mkdir build
+  cd build
+  cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+  make -j$(nproc)
+  sudo make install
+  ```
+  
+  Then restart KWin by logging out and back in.
+</Warning>
+
+<Note>
+  **Always remove the build directory** when rebuilding to avoid CMake cache issues.
+</Note>
+
+## Fedora Kinoite
+
+On Fedora Kinoite and other immutable distributions, the effect must be built in a container and packaged as an RPM:
+
+<Steps>
+  <Step title="Enter Container">
+    Create or enter a build container:
+    
+    ```bash
+    toolbox create -c builder
+    toolbox enter builder
+    ```
+    
+    Or use distrobox:
+    
+    ```bash
+    distrobox create -n builder -i fedora:latest
+    distrobox enter builder
+    ```
+  </Step>
+  
+  <Step title="Install Dependencies">
+    Inside the container:
+    
+    ```bash
+    sudo dnf -y install git cmake extra-cmake-modules gcc-g++ \
+      kf6-kwindowsystem-devel plasma-workspace-devel libplasma-devel \
+      qt6-qtbase-private-devel qt6-qtbase-devel cmake kwin-devel \
+      kf6-knotifications-devel kf6-kio-devel kf6-kcrash-devel \
+      kf6-ki18n-devel kf6-kguiaddons-devel libepoxy-devel \
+      kf6-kglobalaccel-devel kf6-kcmutils-devel kf6-kconfigwidgets-devel \
+      kf6-kdeclarative-devel kdecoration-devel wayland-devel libdrm-devel \
+      rpm-build
+    ```
+  </Step>
+  
+  <Step title="Build and Package">
+    Clone, build, and create RPM:
+    
+    ```bash
+    git clone https://github.com/xarblu/kwin-effects-better-blur-dx
+    cd kwin-effects-better-blur-dx
+    mkdir build
+    cd build
+    cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+    make -j$(nproc)
+    cpack -V -G RPM
+    exit  # Exit container
+    ```
+  </Step>
+  
+  <Step title="Install RPM">
+    Back on the host system:
+    
+    ```bash
+    sudo rpm-ostree install kwin-effects-better-blur-dx/build/kwin-better-blur-dx.rpm
+    systemctl reboot
+    ```
+  </Step>
+</Steps>
+
+<Note>
+  Fedora Kinoite requires a reboot to apply rpm-ostree installations.
+</Note>
+
+## Updating to Latest Version
+
+To update to the latest development version:
+
+```bash
+cd kwin-effects-better-blur-dx
+git pull
+rm -rf build
+mkdir build
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+make -j$(nproc)
+sudo make install
+```
+
+Restart KWin by logging out and back in.
+
+## Uninstalling
+
+To remove Better Blur DX:
+
+```bash
+cd kwin-effects-better-blur-dx/build
+sudo make uninstall
+```
+
+If you no longer have the build directory:
+
+1. Clone the repository again
+2. Run the build commands
+3. Then run `sudo make uninstall`
+
+## Troubleshooting
+
+### CMake Configuration Fails
+
+If CMake can't find required packages:
+
+```bash
+# Check CMake error output for missing packages
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+
+# Install missing development packages for your distribution
+# Refer to distribution-specific installation pages
+```
+
+### Compilation Errors
+
+If compilation fails:
+
+1. **Clean build**:
+   ```bash
+   rm -rf build
+   mkdir build
+   cd build
+   ```
+
+2. **Check compiler version**:
+   ```bash
+   g++ --version  # Should be at least GCC 11
+   ```
+
+3. **Verify KWin version**:
+   ```bash
+   kwin_wayland --version  # Should be 6.5 or 6.6
+   ```
+
+### Effect Not Loading
+
+If the effect doesn't appear in System Settings:
+
+1. **Verify installation**:
+   ```bash
+   # Check plugin file exists (path may vary)
+   ls /usr/lib/qt6/plugins/kwin/effects/plugins/libbetterblur.so
+   ls /usr/lib64/qt6/plugins/kwin/effects/plugins/libbetterblur.so
+   ```
+
+2. **Check KWin logs**:
+   ```bash
+   journalctl --user -u plasma-kwin_wayland.service -f
+   ```
+
+3. **Restart KWin**: Log out and back in, or:
+   ```bash
+   kwin_wayland --replace &  # Wayland
+   kwin_x11 --replace &      # X11
+   ```
+
+### Plugin Path Issues
+
+If the plugin installs to the wrong location:
+
+```bash
+# Find your Qt plugin path
+qtpaths6 --plugin-dir
+
+# Adjust CMAKE_INSTALL_PREFIX if needed
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local
+```
+
+### Permission Denied
+
+If you get permission errors during installation:
+
+```bash
+# Ensure you're using sudo for installation
+sudo make install
+
+# Or install to a user directory
+cmake .. -DCMAKE_INSTALL_PREFIX=$HOME/.local
+make -j$(nproc)
+make install  # No sudo needed
+```
+
+## Advanced Configuration
+
+### Building with Clang
+
+To use Clang instead of GCC:
+
+```bash
+export CC=clang
+export CXX=clang++
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+make -j$(nproc)
+```
+
+### Parallel Builds
+
+Control the number of parallel jobs:
+
+```bash
+# Use specific number of cores
+make -j4
+
+# Use all cores
+make -j$(nproc)
+
+# Use all cores + 1
+make -j$(nproc --all +1)
+```
+
+### Installation DESTDIR
+
+For packaging or testing:
+
+```bash
+make DESTDIR=/tmp/better-blur-install install
+```
+
+## Next Steps
+
+Learn how to configure Better Blur DX in the [Configuration](/usage/configuration) section.

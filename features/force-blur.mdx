@@ -1,0 +1,146 @@
+---
+title: Force Blur
+description: Control which windows receive blur effects using class matching
+---
+
+The force blur feature allows you to control which windows receive blur effects by matching their window class names. This gives you fine-grained control over the visual appearance of your desktop.
+
+## How Force Blur Works
+
+By default, Better Blur DX respects blur regions that are explicitly set by windows themselves (such as Plasma panels, menus, and other system surfaces). The force blur feature allows you to extend blur effects to windows that don't request it, or to exclude specific windows from receiving blur.
+
+<Note>
+  Force blur settings are **ignored** for windows that provide their own blur regions, such as Plasma surfaces (panels, widgets, KRunner) and system menus. The plugin respects these window-defined blur regions to ensure system surfaces display correctly.
+</Note>
+
+## Window Class Matching
+
+You can specify which windows to blur by listing their window class names, one per line. Better Blur DX supports two matching methods:
+
+### Fixed String Matching
+
+Simply enter the exact window class name:
+
+```
+konsole
+dolphin
+kate
+```
+
+The plugin matches against both the window's `resourceClass` and `resourceName` properties, so most windows will be caught by their common name.
+
+### Special Values
+
+- `$blank` - Matches windows with an empty window class (some popup dialogs)
+
+### Regular Expression Matching
+
+For more advanced matching, wrap your pattern in forward slashes to use regular expressions:
+
+```
+/^org\.kde\..*/
+/firefox|chrome/
+/telegram.*/
+```
+
+The regex engine will match against both `resourceClass` and `resourceName`. Invalid regex patterns are logged and ignored.
+
+<Info>
+  Regular expression support was added in version 2.1.0, enabling more flexible window matching patterns.
+</Info>
+
+## Blur Matching Modes
+
+Better Blur DX provides two complementary modes for controlling which windows receive blur:
+
+### Blur Only Matching (Whitelist)
+
+When enabled, **only** windows whose class matches your list will receive blur effects. All other windows remain unblurred.
+
+This is the default mode and is useful when you want to blur a specific set of applications:
+
+```
+konsole
+kate
+dolphin
+```
+
+### Blur All Except Matching (Blacklist)
+
+When enabled, **all** windows receive blur effects **except** those whose class matches your list.
+
+This is useful when most of your applications should be blurred, but you want to exclude specific ones:
+
+```
+spectacle
+org.kde.spectacle
+gimp
+```
+
+<Warning>
+  The blur matching mode affects **all** windows in your list. You cannot create mixed whitelist/blacklist rules in a single configuration.
+</Warning>
+
+## Blur Window Decorations
+
+By default, Better Blur DX only blurs the content area of windows. Enable **Blur window decorations as well** to extend blur to the title bar and borders.
+
+### When to Enable
+
+- Your window decoration theme doesn't support blur natively
+- You want consistent blur across the entire window frame
+- You're using the Breeze theme with "Round bottom corners of windows with no borders" enabled
+
+<Info>
+  When enabled, this option overrides any blur region specified by the window decoration itself, ensuring the entire frame receives blur.
+</Info>
+
+### Interaction with Corner Radius
+
+When blur decorations is enabled along with a corner radius setting, Better Blur DX automatically rounds all four corners of the window frame to prevent the "korners" bug from affecting the title bar area.
+
+## Blur Menus and Docks
+
+By default, menus and docks are filtered from force blur, even if their window class matches your list. You must explicitly enable these options to blur them.
+
+### Blur Menus
+
+Enables blurring for:
+- Context menus (right-click menus)
+- Dropdown menus
+- Popup menus
+- Popup windows
+
+### Blur Docks
+
+Enables blurring for dock windows (panels and taskbars).
+
+<Note>
+  These options only **allow** menus and docks to be considered for blur. You still need to add them to your window class list (or use "Blur all except matching" mode) for them to actually receive blur.
+</Note>
+
+## Windows That Ignore Force Blur
+
+Certain window types are automatically excluded from force blur to ensure system stability:
+
+- **Desktop windows** - The wallpaper background
+- **Xwayland video bridge** - Screen sharing windows
+- **Spectacle capture overlays** - Screenshot tool UI (when in overlay/active layer)
+- **KWin internal windows** - Including window snapping assistant zones
+- **Plasma surfaces with custom blur** - Panels, widgets, KRunner, system menus
+
+These exclusions are hardcoded and cannot be overridden.
+
+## Finding Window Classes
+
+To find the window class of an application:
+
+1. Open the application
+2. Run this command in Konsole:
+   ```bash
+   qdbus org.kde.KWin /KWin queryWindowInfo
+   ```
+3. Click on the window you want to identify
+4. Look for the `resourceClass` or `resourceName` field in the output
+
+Alternatively, you can check the debug logs after enabling the force blur effect - Better Blur DX logs window information when windows are added.

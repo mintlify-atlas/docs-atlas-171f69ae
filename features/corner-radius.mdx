@@ -1,0 +1,151 @@
+---
+title: Corner Radius
+description: Round the corners of blur regions to fix the korners bug
+---
+
+The corner radius feature allows you to round the corners of blurred window regions. While this can be used for aesthetic purposes, its primary function is to fix the infamous "korners" bug in KWin.
+
+## What Corner Radius Does
+
+Corner radius applies rounded corners to the blur region beneath windows. The rounding is applied in pixels and affects how the blurred background is clipped at the window edges.
+
+- **Range:** 0.0 to unlimited (typically 0-20 pixels)
+- **Default:** 0.0 (no rounding)
+- **Input:** Decimal spin box
+
+<Info>
+  Corner radius only affects the **blur region**, not the window shape itself. The window content and decorations remain unchanged - only the blurred background beneath is rounded.
+</Info>
+
+## The "Korners" Bug
+
+The "korners" bug is a long-standing visual issue in KWin where the blur region of a window with rounded corners extends beyond the visible window border, creating rectangular "leaks" of blur at the corners.
+
+### Visual Description
+
+Imagine a window with rounded corners:
+- The window frame is rounded (smooth curves at corners)
+- The blur region is rectangular (extends to square corners)
+- Result: Small rectangular patches of blur are visible "leaking" behind the rounded corners
+
+This creates an ugly visual artifact where the blur effect doesn't match the window shape.
+
+### Why It Happens
+
+Many modern applications and window decorations use rounded corners for aesthetics. However, the blur region is often defined as a simple rectangle, which doesn't account for the corner rounding. Better Blur DX's corner radius feature solves this by clipping the blur region to match the window's corner radius.
+
+## How to Fix the Korners Bug
+
+1. **Identify the window's corner radius** - Most modern themes use 8-12 pixel corner radius
+2. **Set Corner Radius to match** - Enter the same value in Better Blur DX settings
+3. **Test the result** - The blur should now follow the rounded corners precisely
+
+### Common Corner Radius Values
+
+- **Breeze theme:** 8 pixels (default for most KDE windows)
+- **Modern GTK apps:** 10-12 pixels
+- **Chromium-based browsers:** 10 pixels (on some platforms)
+
+<Note>
+  If you're unsure of your window's corner radius, start with 8 pixels (the Breeze default) and adjust up or down until the korners bug is eliminated.
+</Note>
+
+## When Corner Radius is Ignored
+
+Better Blur DX automatically skips corner radius rounding in certain situations to ensure correct behavior:
+
+### Plasma Surfaces
+
+Windows that provide their own blur regions (Plasma panels, widgets, KRunner, menus) are **not affected** by the corner radius setting. These surfaces:
+
+- Define their own precise blur regions
+- Already include proper corner rounding in their regions
+- Are assumed to be correctly configured by the theme
+
+The plugin respects these window-defined regions to avoid breaking the appearance of system UI.
+
+### Maximized and Fullscreen Windows
+
+Corner radius is automatically disabled for:
+
+- **Completely maximized windows** - Corners touch screen edges, no rounding needed
+- **Fullscreen windows** - Cover entire screen, corners not visible
+- **Vertically maximized windows** - Top and bottom touch screen edges (only affects top/bottom corners)
+- **Horizontally maximized windows** - Left and right touch screen edges (only affects side corners)
+
+This optimization prevents unnecessary shader work and ensures proper appearance when windows fill the screen.
+
+### Windows with Provided Radius
+
+Some windows explicitly specify their own corner radius (typically from the Breeze decoration's "Round bottom corners of windows with no borders" option). In these cases:
+
+- The window-provided radius takes priority
+- Better Blur DX uses the window's radius values
+- Your configured corner radius is used as a fallback only
+
+## Interaction with Blur Decorations
+
+When **Blur window decorations as well** is enabled, the corner radius behavior changes:
+
+### Without Blur Decorations
+
+On windows with decorations (title bars), the corner radius typically only affects the **bottom corners** because:
+- The top of the window has a title bar (assumed not blurred)
+- Only the content area corners need rounding
+
+### With Blur Decorations
+
+When decorations are blurred, corner radius affects **all four corners** because:
+- The entire window frame is blurred (including title bar)
+- All corners may need rounding to prevent korners
+
+This is especially important when using Breeze's "Round bottom corners of windows with no borders" option, which Better Blur DX automatically detects and extends to the top corners when blur decorations is enabled.
+
+<Info>
+  In version 2.1.0, a bug was fixed that caused incorrect corner radius application when both "Round bottom corners of windows with no borders" (Breeze setting) and "Blur decorations as well" were enabled simultaneously.
+</Info>
+
+## Client-Side Decorations (CSD)
+
+Windows using client-side decorations (like many GTK applications) include their window decorations as part of the content area. For these windows:
+
+- Corner radius applies to **all four corners** by default
+- The entire window (content + built-in decorations) is treated as one unit
+- No special bottom-only rounding behavior
+
+This ensures GTK applications and other CSD windows display correctly.
+
+## Technical Details
+
+### Blur Region Clipping
+
+The corner radius is implemented as part of the blur rendering pipeline. The blurred background texture is:
+
+1. Rendered at full size
+2. Clipped using a rounded rectangle mask
+3. Composited behind the window
+
+This approach ensures smooth anti-aliased corners without artifacts.
+
+### Performance Impact
+
+Corner radius uses a specialized rounded shader when a non-zero value is set. The performance impact is minimal on modern GPUs, but you may notice:
+
+- Slightly higher GPU usage with many blurred windows
+- No impact when corner radius is 0.0 (uses faster rectangular shader)
+
+### Compatibility with Other Effects
+
+Corner radius works alongside:
+
+- **Wobbly Windows** - Blur fades during window movement/resize (as of v2.1.0)
+- **Magic Lamp** - Blur disabled during minimize animation
+- **Window transforms** - Blur temporarily disabled during transformations
+
+These interactions ensure visual consistency during animated effects.
+
+## Configuration Location
+
+Corner radius is configured in **System Settings → Workspace Behavior → Desktop Effects → Better Blur DX → General tab**.
+
+Enter the desired radius in pixels using the decimal spin box. Changes apply immediately to all affected windows.

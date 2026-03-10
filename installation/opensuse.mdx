@@ -1,0 +1,254 @@
+---
+title: openSUSE Installation
+description: Install Better Blur DX on openSUSE by building from source
+---
+
+Better Blur DX can be manually built on openSUSE. There are no pre-built packages available, so you'll need to compile from source.
+
+## Installation
+
+<Steps>
+  <Step title="Install Dependencies">
+    Install the required development packages:
+    
+    <Tabs>
+      <Tab title="Wayland (Recommended)">
+        ```bash
+        sudo zypper in -y git cmake-full gcc-c++ kf6-extra-cmake-modules \
+          kcoreaddons-devel kguiaddons-devel kconfigwidgets-devel \
+          kwindowsystem-devel ki18n-devel kiconthemes-devel kpackage-devel \
+          frameworkintegration-devel kcmutils-devel kirigami2-devel \
+          "cmake(KF6Config)" "cmake(KF6CoreAddons)" \
+          "cmake(KF6FrameworkIntegration)" "cmake(KF6GuiAddons)" \
+          "cmake(KF6I18n)" "cmake(KF6KCMUtils)" "cmake(KF6KirigamiPlatform)" \
+          "cmake(KF6WindowSystem)" "cmake(Qt6Core)" "cmake(Qt6DBus)" \
+          "cmake(Qt6Quick)" "cmake(Qt6Svg)" "cmake(Qt6Widgets)" \
+          "cmake(Qt6Xml)" "cmake(Qt6UiTools)" "cmake(KF6Crash)" \
+          "cmake(KF6GlobalAccel)" "cmake(KF6KIO)" "cmake(KF6Service)" \
+          "cmake(KF6Notifications)" libepoxy-devel kwin6-devel
+        ```
+      </Tab>
+      
+      <Tab title="X11">
+        ```bash
+        sudo zypper in -y git cmake-full gcc-c++ kf6-extra-cmake-modules \
+          kcoreaddons-devel kguiaddons-devel kconfigwidgets-devel \
+          kwindowsystem-devel ki18n-devel kiconthemes-devel kpackage-devel \
+          frameworkintegration-devel kcmutils-devel kirigami2-devel \
+          "cmake(KF6Config)" "cmake(KF6CoreAddons)" \
+          "cmake(KF6FrameworkIntegration)" "cmake(KF6GuiAddons)" \
+          "cmake(KF6I18n)" "cmake(KF6KCMUtils)" "cmake(KF6KirigamiPlatform)" \
+          "cmake(KF6WindowSystem)" "cmake(Qt6Core)" "cmake(Qt6DBus)" \
+          "cmake(Qt6Quick)" "cmake(Qt6Svg)" "cmake(Qt6Widgets)" \
+          "cmake(Qt6Xml)" "cmake(Qt6UiTools)" "cmake(KF6Crash)" \
+          "cmake(KF6GlobalAccel)" "cmake(KF6KIO)" "cmake(KF6Service)" \
+          "cmake(KF6Notifications)" libepoxy-devel kwin6-x11-devel
+        ```
+        
+        <Warning>
+          X11 support is deprecated and not actively tested. Wayland is recommended.
+        </Warning>
+      </Tab>
+    </Tabs>
+    
+    <Note>
+      openSUSE uses a combination of package names and CMake package specifiers for dependencies.
+    </Note>
+  </Step>
+  
+  <Step title="Clone the Repository">
+    Clone the Better Blur DX source code:
+    
+    ```bash
+    git clone https://github.com/xarblu/kwin-effects-better-blur-dx
+    cd kwin-effects-better-blur-dx
+    ```
+  </Step>
+  
+  <Step title="Build the Effect">
+    Compile the effect:
+    
+    <Tabs>
+      <Tab title="Wayland">
+        ```bash
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+        make -j$(nproc)
+        sudo make install
+        ```
+      </Tab>
+      
+      <Tab title="X11">
+        ```bash
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DBETTERBLUR_X11=ON
+        make -j$(nproc)
+        sudo make install
+        ```
+        
+        <Note>
+          The `-DBETTERBLUR_X11=ON` flag is required to build for X11.
+        </Note>
+      </Tab>
+    </Tabs>
+  </Step>
+  
+  <Step title="Enable the Effect">
+    After installation:
+    
+    1. Open **System Settings** > **Desktop Effects**
+    2. Disable any existing blur effects
+    3. Enable **Better Blur DX**
+  </Step>
+</Steps>
+
+## System Upgrades
+
+<Warning>
+  **Important**: After upgrading Plasma or KWin, you must rebuild the effect.
+  
+  The effect is compiled against a specific KWin version. After system upgrades:
+  
+  ```bash
+  cd kwin-effects-better-blur-dx
+  rm -rf build  # Remove old build directory
+  mkdir build
+  cd build
+  cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+  make -j$(nproc)
+  sudo make install
+  ```
+  
+  Then restart KWin by logging out and back in.
+</Warning>
+
+<Note>
+  **Always remove the build directory** when rebuilding the effect to avoid cache issues.
+</Note>
+
+## Updating to Latest Version
+
+To update to the latest development version:
+
+```bash
+cd kwin-effects-better-blur-dx
+git pull
+rm -rf build
+mkdir build
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+make -j$(nproc)
+sudo make install
+```
+
+Restart KWin after updating.
+
+## Build Options
+
+Customize the build with these CMake options:
+
+<CodeGroup>
+```bash X11 Support
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DBETTERBLUR_X11=ON
+```
+
+```bash Debug Build
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Debug
+```
+
+```bash Custom Install Prefix
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local
+```
+</CodeGroup>
+
+## Uninstalling
+
+To remove Better Blur DX:
+
+```bash
+cd kwin-effects-better-blur-dx/build
+sudo make uninstall
+```
+
+If you no longer have the build directory, reinstall to the same location and then uninstall.
+
+## Troubleshooting
+
+### Missing Dependencies
+
+If CMake reports missing packages:
+
+```bash
+# Search for the package
+zypper search <package-name>
+
+# List available cmake() packages
+zypper search 'cmake(KF6*)'
+```
+
+### Build Errors
+
+If compilation fails:
+
+1. **Clean build**: Remove the build directory and try again
+   ```bash
+   rm -rf build
+   mkdir build
+   cd build
+   ```
+
+2. **Check KWin version**: Ensure you have Plasma 6.5 or 6.6
+   ```bash
+   kwin_wayland --version
+   ```
+
+3. **Verify dependencies**: Make sure all development packages are installed
+   ```bash
+   zypper info kwin6-devel
+   ```
+
+### Effect Not Loading
+
+If the effect doesn't appear:
+
+1. **Check installation**:
+   ```bash
+   ls /usr/lib*/qt6/plugins/kwin/effects/plugins/libbetterblur.so
+   ```
+
+2. **View logs**:
+   ```bash
+   journalctl --user -u plasma-kwin_wayland.service -f
+   ```
+
+3. **Restart KWin**: Log out and back in
+
+### Compiler Issues
+
+If you get compiler errors:
+
+```bash
+# Ensure gcc-c++ is installed and up to date
+sudo zypper in --force-resolution gcc-c++
+g++ --version  # Should be at least g++ 11
+```
+
+## openSUSE Tumbleweed vs Leap
+
+This guide works for both:
+
+- **Tumbleweed**: Rolling release with latest Plasma
+- **Leap**: Stable release (ensure you have Plasma 6.5+)
+
+For Leap, you may need to enable additional repositories for Plasma 6:
+
+```bash
+# Check your Plasma version
+plasmashell --version
+```
+
+## Next Steps
+
+Learn how to configure Better Blur DX in the [Configuration](/usage/configuration) section.
